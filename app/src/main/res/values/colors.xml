@@ -33,6 +33,9 @@
     <color name="brand_vip">#FFE2B376</color>
     <color name="brand_alert">#FFFF3B30</color>
 
+    <!-- 品牌绿是亮色，压在上面的文字必须是深色，否则对比度不足 -->
+    <color name="on_brand">#FF0B0D10</color>
+
     <color name="surface_base">#FF0E1013</color>
     <color name="surface_card">#FF171A1F</color>
     <color name="surface_raised">#FF21252C</color>

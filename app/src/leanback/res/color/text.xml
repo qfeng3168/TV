@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/brand_primary" android:state_focused="true" android:state_selected="true" />
-    <item android:color="@color/brand_primary" android:state_selected="true" />
-    <item android:color="@color/brand_primary" android:state_checked="true" />
+    <!-- 焦点落在「半透明深底 + 品牌绿描边」上，文字必须保持白色 -->
+    <item android:color="@color/on_surface_high" android:state_focused="true" />
+    <!-- 选中是实心品牌绿底，只有深色文字才有足够对比度 -->
+    <item android:color="@color/on_brand" android:state_selected="true" />
+    <item android:color="@color/on_brand" android:state_checked="true" />
     <item android:color="@color/on_surface_high" />
 </selector>

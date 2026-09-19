@@ -61,29 +61,32 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="Kiwi.Text.Display">
+    <!-- 基样式本身是点号命名，没有显式父级就会去继承不存在的 Kiwi，
+         所以锚到 Material3 的同名刻度上；下面的五个派生样式各自覆盖字号与字色 -->
+    <style name="Kiwi.Text" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/on_surface_high</item>
+    </style>
+
+    <style name="Kiwi.Text.Display" parent="Kiwi.Text">
         <item name="android:textSize">32sp</item>
-        <item name="android:textColor">@color/on_surface_high</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <style name="Kiwi.Text.Title">
+    <style name="Kiwi.Text.Title" parent="Kiwi.Text">
         <item name="android:textSize">24sp</item>
-        <item name="android:textColor">@color/on_surface_high</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <style name="Kiwi.Text.Subtitle">
+    <style name="Kiwi.Text.Subtitle" parent="Kiwi.Text">
         <item name="android:textSize">20sp</item>
-        <item name="android:textColor">@color/on_surface_high</item>
     </style>
 
-    <style name="Kiwi.Text.Body">
+    <style name="Kiwi.Text.Body" parent="Kiwi.Text">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/on_surface_medium</item>
     </style>
 
-    <style name="Kiwi.Text.Caption">
+    <style name="Kiwi.Text.Caption" parent="Kiwi.Text">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/on_surface_low</item>
     </style>
