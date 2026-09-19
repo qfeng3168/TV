@@ -1,0 +1,252 @@
+name: FongMi Release APK Recon
+
+# The public FongMi/media fork does not contain the libass support that the
+# fongmi branch of FongMi/TV depends on:
+#   androidx.media3.exoplayer.libass.{LibassPlaybackSession,LibassConfiguration,
+#     LibassSubtitleController,LibassFontFile}
+#   androidx.media3.ui.libass.LibassPlayerViewController
+#   androidx.media3.exoplayer.trackselection.SecondaryTextTrackSelector
+#   androidx.media3.exoplayer.text.SecondaryTextOutput
+# Issue #729 reported exactly this and the author answered "please generate it
+# yourself with AI", so it will never be pushed. The released APK is the only
+# public artifact that contains the compiled code, so this workflow pulls it
+# and reports, with evidence, what can and cannot be recovered from it:
+#   * native libraries (.so)       - recoverable verbatim
+#   * dex class names              - which ones R8 kept and which it renamed
+# Reconnaissance only: it is not part of the app build.
+
+on:
+  push:
+    branches: [fongmi, 'ci/**']
+    paths:
+      - ".github/workflows/release-apk-recon.yml"
+  workflow_dispatch:
+    inputs:
+      apk:
+        description: "APK file name under apk/ in FongMi/Release"
+        required: true
+        default: "leanback-arm64_v8a.apk"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-apk-recon-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RELEASE_RAW: https://raw.githubusercontent.com/FongMi/Release/fongmi/apk
+
+jobs:
+  recon:
+    name: download and analyse the release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download APK
+        run: |
+          APK_NAME="${{ github.event.inputs.apk }}"
+          APK_NAME="${APK_NAME:-leanback-arm64_v8a.apk}"
+          echo "APK_NAME=$APK_NAME" >> "$GITHUB_ENV"
+          mkdir -p apk
+          curl -fSL --retry 5 --retry-all-errors --retry-delay 3 \
+            -o "apk/$APK_NAME" "$RELEASE_RAW/$APK_NAME"
+          ls -l "apk/$APK_NAME"
+          # Prove it is really a zip before anything downstream trusts it.
+          python3 -c "
+          import sys, zipfile
+          path = sys.argv[1]
+          with zipfile.ZipFile(path) as z:
+              print('zip entries:', len(z.namelist()))
+          " "apk/$APK_NAME"
+
+      # Pure Python, no JDK: parses the dex string/type tables directly, which
+      # is all that is needed to answer the decisive question - were the
+      # original binary names of the libass classes kept, or renamed by R8?
+      - name: Analyse dex and extract native libraries
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          import struct
+          import sys
+          import zipfile
+
+          APK = f"apk/{os.environ['APK_NAME']}"
+          OUT = "out"
+          os.makedirs(os.path.join(OUT, "native"), exist_ok=True)
+
+          # Binary names the TV sources reference (app/src/main/java/com/fongmi/
+          # android/tv/player/exo/*.java), i.e. what a compile dependency must
+          # provide.
+          WANTED = [
+              "androidx/media3/exoplayer/libass/LibassPlaybackSession",
+              "androidx/media3/exoplayer/libass/LibassConfiguration",
+              "androidx/media3/exoplayer/libass/LibassSubtitleController",
+              "androidx/media3/exoplayer/libass/LibassFontFile",
+              "androidx/media3/exoplayer/libass/LibassNative",
+              "androidx/media3/exoplayer/libass/LibassFrame",
+              "androidx/media3/exoplayer/libass/LibassImage",
+              "androidx/media3/ui/libass/LibassPlayerViewController",
+              "androidx/media3/exoplayer/trackselection/SecondaryTextTrackSelector",
+              "androidx/media3/exoplayer/text/SecondaryTextOutput",
+          ]
+
+          HEADER = struct.Struct("<8sI20s20I")
+          report = []
+
+
+          def say(line=""):
+              print(line)
+              report.append(line)
+
+
+          def read_uleb128(data, offset):
+              result = 0
+              shift = 0
+              while True:
+                  byte = data[offset]
+                  offset += 1
+                  result |= (byte & 0x7F) << shift
+                  if not byte & 0x80:
+                      return result, offset
+                  shift += 7
+
+
+          def dex_strings(blob):
+              if blob[:4] != b"dex\n":
+                  raise ValueError(f"not a dex file (magic={blob[:8]!r})")
+              fields = HEADER.unpack_from(blob, 0)
+              string_ids_size = fields[11]
+              string_ids_off = fields[12]
+              for index in range(string_ids_size):
+                  (str_off,) = struct.unpack_from("<I", blob, string_ids_off + index * 4)
+                  _, cursor = read_uleb128(blob, str_off)
+                  end = blob.index(b"\x00", cursor)
+                  yield blob[cursor:end].decode("utf-8", "replace")
+
+
+          def dex_types(blob):
+              fields = HEADER.unpack_from(blob, 0)
+              string_ids_size, string_ids_off = fields[11], fields[12]
+              type_ids_size, type_ids_off = fields[13], fields[14]
+              strings = []
+              for index in range(string_ids_size):
+                  (str_off,) = struct.unpack_from("<I", blob, string_ids_off + index * 4)
+                  _, cursor = read_uleb128(blob, str_off)
+                  end = blob.index(b"\x00", cursor)
+                  strings.append(blob[cursor:end].decode("utf-8", "replace"))
+              types = set()
+              for index in range(type_ids_size):
+                  (descriptor_idx,) = struct.unpack_from("<I", blob, type_ids_off + index * 4)
+                  if descriptor_idx < len(strings):
+                      types.add(strings[descriptor_idx])
+              return types
+
+
+          say(f"APK: {APK} ({os.path.getsize(APK):,} bytes)")
+
+          with zipfile.ZipFile(APK) as archive:
+              names = archive.namelist()
+              dexs = sorted(n for n in names if re.fullmatch(r"classes\d*\.dex", n))
+              libs = sorted(n for n in names if n.startswith("lib/") and n.endswith(".so"))
+
+              say()
+              say(f"== dex files ({len(dexs)}) ==")
+              for name in dexs:
+                  info = archive.getinfo(name)
+                  say(f"  {name}  {info.file_size:,} bytes uncompressed")
+
+              say()
+              say(f"== native libraries ({len(libs)}) ==")
+              for name in libs:
+                  size = archive.getinfo(name).file_size
+                  basename = os.path.basename(name)
+                  interesting = " <-- LIBASS" if "ass" in basename.lower() else ""
+                  say(f"  {name}  {size:,} bytes{interesting}")
+
+              # Everything whose file name contains "ass" is pulled out verbatim;
+              # so is every other .so smaller than 1 MB, since a JNI bridge for
+              # libass would be small while libmpv/libav* are tens of MB.
+              pulled = []
+              for name in libs:
+                  basename = os.path.basename(name)
+                  size = archive.getinfo(name).file_size
+                  if "ass" in basename.lower() or size < 1024 * 1024:
+                      target = os.path.join(OUT, "native", name.replace("/", "_"))
+                      with open(target, "wb") as handle:
+                          handle.write(archive.read(name))
+                      pulled.append(f"{name} -> out/native/{os.path.basename(target)}")
+              say()
+              say(f"== extracted native libraries ({len(pulled)}) ==")
+              for line in pulled:
+                  say(f"  {line}")
+
+              per_dex = {}
+              all_types = set()
+              for name in dexs:
+                  try:
+                      types = dex_types(archive.read(name))
+                  except Exception as exc:  # noqa: BLE001 - keep going, report it
+                      say(f"  ! {name}: {exc}")
+                      continue
+                  per_dex[name] = types
+                  all_types |= types
+
+              say()
+              say("== are the original binary names present? ==")
+              kept = 0
+              for want in WANTED:
+                  descriptor = f"L{want};"
+                  found_in = [n for n, t in per_dex.items() if descriptor in t]
+                  if found_in:
+                      kept += 1
+                      say(f"  KEPT    {want}  ({', '.join(found_in)})")
+                  else:
+                      say(f"  RENAMED {want}")
+              say(f"  -> {kept}/{len(WANTED)} original names survive R8")
+
+              say()
+              say("== remaining types mentioning media3 + ass ==")
+              hits = sorted(t for t in all_types if "media3" in t and "ass" in t.lower())
+              for t in hits[:60]:
+                  say(f"  {t}")
+              if not hits:
+                  say("  (none: the package segment itself was renamed)")
+
+              say()
+              say(f"== totals: {len(per_dex)} dex parsed, {len(all_types):,} distinct types ==")
+
+              say()
+              say("== string constants mentioning libass / media3ass ==")
+              for name in dexs:
+                  try:
+                      blob = archive.read(name)
+                  except Exception:  # noqa: BLE001
+                      continue
+                  for text in dex_strings(blob):
+                      low = text.lower()
+                      if "libass" in low or "media3ass" in low:
+                          say(f"  [{name}] {text!r}")
+
+          with open(os.path.join(OUT, "report.txt"), "w", encoding="utf-8") as handle:
+              handle.write("\n".join(report) + "\n")
+          PY
+
+      - name: Upload recon output
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-libass-recon
+          path: out/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Put report in the run summary
+        run: |
+          {
+            echo '## Release APK recon'
+            echo
+            echo '```'
+            cat out/report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
