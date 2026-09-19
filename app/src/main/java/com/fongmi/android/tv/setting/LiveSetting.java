@@ -43,4 +43,12 @@ public class LiveSetting {
     public static void putScale(int scale) {
         Prefers.put("scale_live", Math.clamp(scale, PlayerSetting.MIN_SCALE, PlayerSetting.MAX_SCALE));
     }
+
+    public static String getEpg() {
+        return Prefers.getString("epg", "");
+    }
+
+    public static void putEpg(String epg) {
+        Prefers.put("epg", epg);
+    }
 }
