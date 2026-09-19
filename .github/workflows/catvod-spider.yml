@@ -1,0 +1,261 @@
+name: CatVod Spider Jar
+
+# The spider JAR is a runtime artifact, not a compile-time dependency: the app
+# only reads a `spider` URL out of the user's config and hands it to
+# BaseLoader.parseJar (app/src/main/java/com/fongmi/android/tv/api/config/
+# VodConfig.java:180, LiveConfig.java:188). So it is built here, on its own,
+# from the public FongMi/CatVodSpider sources instead of inside Android Build.
+
+on:
+  push:
+    branches: [fongmi, 'ci/**']
+    paths:
+      - ".github/workflows/catvod-spider.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catvod-spider-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SPIDER_REPO: FongMi/CatVodSpider
+  # main tip at the time of writing; pinned so the artifact stays reproducible.
+  SPIDER_REF: db4cf26356fa59d1331769f11cbbfb2a779227e6
+
+jobs:
+  spider-jar:
+    name: build custom_spider.jar
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      # The TV sources play no part here, so this checks out the spider
+      # repository rather than the repository the workflow lives in.
+      - name: Checkout CatVodSpider
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SPIDER_REPO }}
+          ref: ${{ env.SPIDER_REF }}
+          path: CatVodSpider
+
+      # gradle/gradle-daemon-jvm.properties pins the daemon to
+      #   toolchainVendor=JETBRAINS, toolchainVersion=21
+      # and ships foojay download URLs, so an arbitrary JDK would make the
+      # wrapper fetch a JetBrains Runtime on first use. Installing the matching
+      # distribution up front lets the criteria resolve against JAVA_HOME.
+      - name: Setup JDK 21 (JetBrains Runtime)
+        uses: actions/setup-java@v5
+        with:
+          distribution: jetbrains
+          java-version: 21
+
+      # ubuntu-latest ships the SDK at /usr/local/lib/android/sdk but exports
+      # neither ANDROID_HOME/ANDROID_SDK_ROOT nor a PATH entry for sdkmanager.
+      - name: Setup Android SDK
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          test -d "$SDK_ROOT" || { echo "::error::Android SDK not found at $SDK_ROOT"; exit 1; }
+          CMDLINE_BIN=$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1)
+          test -n "$CMDLINE_BIN" || {
+            echo "::error::sdkmanager not found under $SDK_ROOT/cmdline-tools"
+            ls -R "$SDK_ROOT/cmdline-tools" | head -30
+            exit 1
+          }
+          {
+            echo "ANDROID_SDK_ROOT=$SDK_ROOT"
+            echo "ANDROID_HOME=$SDK_ROOT"
+          } >> "$GITHUB_ENV"
+          echo "$(dirname "$CMDLINE_BIN")" >> "$GITHUB_PATH"
+
+      # `yes` exits 141 (SIGPIPE) once sdkmanager closes stdin, so the pipeline
+      # status cannot be trusted; assert on the output instead.
+      - name: Accept SDK licenses
+        run: |
+          yes | sdkmanager --licenses > /tmp/licenses.log 2>&1 || true
+          tail -n 5 /tmp/licenses.log
+          if ! grep -qiE "licenses? accepted|already accepted" /tmp/licenses.log; then
+            echo "::error::sdkmanager did not report accepted licenses"
+            cat /tmp/licenses.log
+            exit 1
+          fi
+
+      # CatVodSpider/gradle/libs.versions.toml: compileSdk = 37, targetSdk = 37,
+      # minSdk = 21, Java 17. No NDK or CMake is required: quickjs arrives as a
+      # prebuilt AAR and the remaining dependencies are pure Java.
+      - name: Install required SDK packages
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-37.0" \
+            "build-tools;37.0.0"
+          sdkmanager --list_installed
+
+      - name: Generate local.properties
+        working-directory: CatVodSpider
+        run: |
+          test -n "$ANDROID_SDK_ROOT" || { echo "::error::ANDROID_SDK_ROOT is empty"; exit 1; }
+          printf 'sdk.dir=%s\n' "$ANDROID_SDK_ROOT" > local.properties
+          cat local.properties
+
+      - name: Make gradlew executable
+        working-directory: CatVodSpider
+        run: chmod +x gradlew
+
+      # `spiderJar` is deliberately not used. Its verifySpiderJar task runs
+      #   commandLine 'powershell', '-File', 'jar/checkJar.ps1'
+      # and checkJar.ps1 hard-codes Windows separators ("com\github\catvod",
+      # "javax\xml\namespace"), so under pwsh on Linux every Test-Path fails
+      # with "missing catvod package". Building up to generateSpiderJar skips
+      # that task, and the same assertions are reproduced in Python below.
+      #
+      # The chain is still complete:
+      #   generateSpiderJar -> prepareSpiderJar -> decodeSpiderJar -> :app:assembleRelease
+      # i.e. R8-minified release APK -> apktool decode -> smali/com/github/catvod/
+      # {spider,js} merged into the jar/spider.jar template -> apktool build.
+      - name: Build spider jar
+        working-directory: CatVodSpider
+        run: ./gradlew generateSpiderJar --no-daemon --stacktrace
+
+      # Faithful re-implementation of jar/checkJar.ps1: same forbidden packages,
+      # same "only js and spider under com/github/catvod" rule, same
+      # definitions-vs-references closure over the allowed API prefixes, same
+      # Gson TypeToken guard.
+      - name: Verify spider jar
+        working-directory: CatVodSpider
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import os
+          import re
+          import subprocess
+          import sys
+          import tempfile
+
+          JAR = "jar/custom_spider.jar"
+          APKTOOL = "jar/3rd/apktool_2.11.0.jar"
+
+
+          def fail(message):
+              print(f"FAIL {message}")
+              sys.exit(1)
+
+
+          if not os.path.isfile(JAR):
+              fail(f"missing jar: {JAR}")
+          size = os.path.getsize(JAR)
+          md5 = hashlib.md5(open(JAR, "rb").read()).hexdigest()
+
+          with tempfile.TemporaryDirectory() as work:
+              decoded = subprocess.run(
+                  ["java", "-jar", APKTOOL, "d", "-f", JAR, "-o", work],
+                  capture_output=True,
+                  text=True,
+              )
+              if decoded.returncode != 0:
+                  print(decoded.stdout[-4000:])
+                  print(decoded.stderr[-4000:])
+                  fail("apktool decode failed")
+
+              smali = os.path.join(work, "smali")
+              if not os.path.isdir(smali):
+                  fail("missing smali output")
+
+              for packaged in ("androidx", "kotlin", "javax/xml/namespace", "org/slf4j", "org/xmlpull/v1"):
+                  if os.path.isdir(os.path.join(smali, packaged)):
+                      fail(f"unexpected packaged API: {packaged}")
+
+              catvod = os.path.join(smali, "com", "github", "catvod")
+              if not os.path.isdir(catvod):
+                  fail("missing catvod package")
+              unexpected = sorted(n for n in os.listdir(catvod) if n not in ("js", "spider"))
+              if unexpected:
+                  fail("unexpected catvod entries: " + ", ".join(unexpected))
+
+              class_re = re.compile(r"(?m)^\.class[ \t]+(?:[^ \t\r\n]+[ \t]+)*L([^;\r\n]+);")
+              type_re = re.compile(
+                  r"(?<![A-Za-z0-9_$])L([A-Za-z_$][A-Za-z0-9_$]*"
+                  r"(?:/[A-Za-z_$][A-Za-z0-9_$]*)+(?:\$[A-Za-z0-9_$]+)?);"
+              )
+              forbidden = "Lcom/google/gson/reflect/TypeToken;-><init>()V"
+
+              defs = set()
+              refs = set()
+              for root, _, files in os.walk(smali):
+                  for name in files:
+                      if not name.endswith(".smali"):
+                          continue
+                      path = os.path.join(root, name)
+                      text = open(path, encoding="utf-8", errors="surrogateescape").read()
+                      if forbidden in text:
+                          fail(f"illegal Gson TypeToken constructor call: {path}")
+                      defs.update(class_re.findall(text))
+                      refs.update(type_re.findall(text))
+
+              allowed = (
+                  "android/",
+                  "androidx/annotation/",
+                  "androidx/startup/",
+                  "androidx/tracing/",
+                  "com/github/catvod/crawler/",
+                  "com/google/gson/",
+                  "com/hierynomus/",
+                  "com/thegrizzlylabs/sardineandroid/",
+                  "com/whl/quickjs/",
+                  "dalvik/",
+                  "j$/",
+                  "java/",
+                  "javax/crypto/",
+                  "javax/net/",
+                  "javax/security/",
+                  "javax/xml/namespace/",
+                  "okhttp3/",
+                  "okio/",
+                  "org/json/",
+                  "org/slf4j/",
+                  "org/w3c/dom/",
+                  "org/xml/sax/",
+                  "org/xmlpull/v1/",
+                  "kotlin/",
+              )
+              # jsoup may reference re2j as an optional regex backend.
+              optional = ("com/google/re2j/",)
+
+              missing = sorted(
+                  r for r in refs if r not in defs and not r.startswith(allowed) and not r.startswith(optional)
+              )
+              if missing:
+                  fail("missing refs: " + ", ".join(missing[:20]))
+
+              optional_refs = sorted({r for r in refs if r not in defs and r.startswith(optional)})
+              if optional_refs:
+                  print("WARN optional refs (jsoup regex backend): " + ", ".join(optional_refs))
+
+          # Same format as ant.checksum: the bare hash, no filename.
+          with open(JAR + ".md5", "w", encoding="utf-8") as handle:
+              handle.write(md5 + "\n")
+
+          print(f"OK {os.path.basename(JAR)} {size} bytes {md5}")
+          PY
+
+      - name: Upload spider jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: catvod-spider-jar
+          path: |
+            CatVodSpider/jar/custom_spider.jar
+            CatVodSpider/jar/custom_spider.jar.md5
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Summarize
+        run: |
+          {
+            echo "### custom_spider.jar"
+            echo
+            echo '```'
+            ls -l CatVodSpider/jar/custom_spider.jar
+            cat CatVodSpider/jar/custom_spider.jar.md5
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
