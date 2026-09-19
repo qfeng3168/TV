@@ -56,6 +56,12 @@ env:
     lib-session-release.aar
     lib-ui-release.aar
     lib-ui-danmaku-release.aar
+  # The upstream signed APK only exists on raw.githubusercontent.com, which the
+  # development machine cannot reach (the connection is reset). It is fetched on
+  # the runner instead, so the package that is already installed on the device
+  # can be restored once the sideload build has been tested.
+  RELEASE_RAW: https://raw.githubusercontent.com/FongMi/Release/fongmi/apk
+  RELEASE_APK: leanback-arm64_v8a.apk
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -530,6 +536,56 @@ jobs:
   # ---------------------------------------------------------------------------
   # Stage 2: build the app against those AARs.
   # ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # The device already runs the upstream signed release, and the point of the
+  # sideload build is that the two coexist instead of replacing each other.
+  # raw.githubusercontent.com is unreachable from the development machine, so the
+  # release APK is fetched here and handed back as an artifact.
+  # ---------------------------------------------------------------------------
+  official-apk:
+    name: fetch the official release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download the release APK
+        run: |
+          mkdir -p apk
+          curl -fSL --retry 5 --retry-all-errors --retry-delay 3 \
+            -o "apk/$RELEASE_APK" "$RELEASE_RAW/$RELEASE_APK"
+          ls -l apk/
+
+      # Refuse to hand back something that is not the package we think it is.
+      - name: Verify it really is an arm64 APK
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import os
+          import pathlib
+          import sys
+          import zipfile
+
+          path = pathlib.Path("apk") / os.environ["RELEASE_APK"]
+          with zipfile.ZipFile(path) as archive:
+              names = archive.namelist()
+          if "AndroidManifest.xml" not in names:
+              sys.exit("%s is not an APK" % path)
+          abis = sorted({n.split("/")[1] for n in names if n.startswith("lib/")})
+          if "arm64-v8a" not in abis:
+              sys.exit("expected an arm64-v8a build, got %s" % abis)
+          print("file:  ", path)
+          print("bytes: ", path.stat().st_size)
+          print("sha256:", hashlib.sha256(path.read_bytes()).hexdigest())
+          print("abis:  ", abis)
+          PY
+
+      - name: Upload the release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-leanback-arm64
+          path: apk/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
   build:
     name: assemble (${{ matrix.variant }})
     needs: media-aar
@@ -1243,6 +1299,62 @@ jobs:
             find app/src/main/java/androidx -name "*.java"
             exit 1
           }
+
+      # The device already runs the upstream signed release, so a debug build can
+      # never take its place: Android refuses the install outright with
+      # INSTALL_FAILED_UPDATE_INCOMPATIBLE. Giving the build under test its own
+      # application id instead lets the two coexist, and leaves the installed
+      # package -- and everything under /sdcard/TV -- completely untouched.
+      #
+      # The id is rewritten textually rather than through applicationIdSuffix, so
+      # this does not depend on any particular AGP DSL, and the namespace is left
+      # alone on purpose: R, BuildConfig and every fully qualified class name in
+      # the manifest are generated from it. Changing it would mean editing Java
+      # sources, which this branch does not do.
+      - name: Give the debug build its own application id
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          BASE = "com.fongmi.android.tv"
+          SIDELOAD = BASE + ".sideload"
+          path = pathlib.Path("app/build.gradle")
+          text = path.read_text(encoding="utf-8")
+
+          # Exactly one hit, and it must look like an applicationId assignment:
+          # a second occurrence would mean the file changed shape underneath us.
+          assignments = re.findall(
+              r"\n[ \t]*applicationId[ \t]+\"%s\"" % re.escape(BASE), text
+          )
+          if len(assignments) != 1:
+              sys.exit("expected 1 applicationId assignment, found %d" % len(assignments))
+
+          namespace = "namespace = '%s'" % BASE
+          if namespace not in text:
+              sys.exit("the namespace line is not in the expected form")
+
+          updated = text.replace(
+              'applicationId "%s"' % BASE, 'applicationId "%s"' % SIDELOAD, 1
+          )
+          if updated == text:
+              sys.exit("nothing was rewritten")
+          path.write_text(updated, encoding="utf-8")
+
+          # Read it back, so a stale or missed write fails here rather than nine
+          # minutes later, halfway through packaging.
+          check = path.read_text(encoding="utf-8")
+          if 'applicationId "%s"' % SIDELOAD not in check:
+              sys.exit("the rewrite did not stick")
+          if 'applicationId "%s"' % BASE in check:
+              sys.exit("the original application id is still there")
+          if namespace not in check:
+              sys.exit("the namespace must stay untouched")
+          print("applicationId -> %s" % SIDELOAD)
+          print("namespace     -> %s (unchanged)" % BASE)
+          PY
+          git --no-pager diff --unified=2 app/build.gradle
 
       - name: Print environment
         run: |
