@@ -3,7 +3,7 @@
     android:shape="oval">
 
     <stroke
-        android:width="2dp"
-        android:color="@color/white" />
+        android:width="@dimen/kiwi_focus_stroke"
+        android:color="@color/brand_primary" />
 
 </shape>

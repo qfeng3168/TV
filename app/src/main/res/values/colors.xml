@@ -26,4 +26,24 @@
     <color name="white_80">#CCFFFFFF</color>
     <color name="white_90">#E6FFFFFF</color>
 
+    <color name="brand_primary">#FF00DC5A</color>
+    <color name="brand_primary_deep">#FF00CC36</color>
+    <color name="brand_primary_fill">#1F00DC5A</color>
+    <color name="brand_primary_dim">#3D00DC5A</color>
+    <color name="brand_vip">#FFE2B376</color>
+    <color name="brand_alert">#FFFF3B30</color>
+
+    <color name="surface_base">#FF0E1013</color>
+    <color name="surface_card">#FF171A1F</color>
+    <color name="surface_raised">#FF21252C</color>
+    <color name="surface_scrim">#CC000000</color>
+    <color name="surface_badge">#B321252C</color>
+
+    <color name="outline_subtle">#1FFFFFFF</color>
+
+    <color name="on_surface_high">#FFFFFFFF</color>
+    <color name="on_surface_medium">#B3FFFFFF</color>
+    <color name="on_surface_low">#80FFFFFF</color>
+    <color name="on_surface_disabled">#4DFFFFFF</color>
+
 </resources>

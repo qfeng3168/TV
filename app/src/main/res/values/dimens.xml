@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="kiwi_radius_xs">4dp</dimen>
+    <dimen name="kiwi_radius_sm">8dp</dimen>
+    <dimen name="kiwi_radius_md">12dp</dimen>
+    <dimen name="kiwi_radius_lg">16dp</dimen>
+    <dimen name="kiwi_radius_pill">28dp</dimen>
+
+    <dimen name="kiwi_space_xs">4dp</dimen>
+    <dimen name="kiwi_space_sm">8dp</dimen>
+    <dimen name="kiwi_space_md">16dp</dimen>
+    <dimen name="kiwi_space_lg">24dp</dimen>
+    <dimen name="kiwi_space_xl">32dp</dimen>
+    <dimen name="kiwi_space_xxl">48dp</dimen>
+
+    <dimen name="kiwi_focus_stroke">2dp</dimen>
+
+</resources>
