@@ -1,0 +1,106 @@
+name: Android Build
+
+on:
+  push:
+    branches: [fongmi]
+    paths:
+      - "app/**"
+      - "catvod/**"
+      - "quickjs/**"
+      - "chaquo/**"
+      - "buildSrc/**"
+      - "app/build.gradle"
+      - "build.gradle"
+      - "settings.gradle"
+      - "gradle.properties"
+      - "gradle/libs.versions.toml"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANDROID_NDK_VERSION: 28.2.13676358
+  GRADLE_JAVA_OPTS: -Xmx3072m
+
+jobs:
+  build:
+    name: assemble (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [mobileDebug, leanbackDebug]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      # Note: sdkmanager is pre-installed on ubuntu-latest. We avoid
+      # android-actions/setup-android to prevent mutable-tag supply-chain risk.
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses 2>&1 | tail -5
+
+      - name: Install required SDK packages
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-37" \
+            "build-tools;37.0.0" \
+            "ndk;${ANDROID_NDK_VERSION}"
+
+      # CRITICAL: app/build.gradle:9 unconditionally reads local.properties.
+      # Without this step, gradle configure fails with FileNotFoundException.
+      - name: Generate local.properties
+        run: |
+          printf 'sdk.dir=%s\nstoreFile=\nkeyAlias=\nstorePassword=\nkeyPassword=\n' "$ANDROID_SDK_ROOT" > local.properties
+          cat local.properties
+
+      - name: Cache Gradle + Chaquopy
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}-${{ hashFiles('app/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Setup Gradle wrapper
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache: true
+          cache-dependency-path: gradle/libs.versions.toml
+
+      - name: Print environment
+        run: |
+          java -version
+          gradle --version
+          echo "SDK: $ANDROID_SDK_ROOT"
+          ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
+          ls -la "$ANDROID_SDK_ROOT/ndk/" || true
+
+      - name: Build ${{ matrix.variant }}
+        run: ./gradlew :app:assemble${{ matrix.variant }} --no-daemon --stacktrace
+
+      - name: Upload APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv-${{ matrix.variant }}
+          path: app/build/outputs/apk/*/${{ matrix.variant }}/*.apk
+          if-no-files-found: warn
+          retention-days: 7
