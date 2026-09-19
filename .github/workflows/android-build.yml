@@ -27,13 +27,174 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GRADLE_JAVA_OPTS: -Xmx3072m
+  # The player dependency is not in this repository: app/libs/.gitignore
+  # excludes 'lib-*.aar' and README states that a plain clone lacks the full
+  # player dependency. Those AARs come from the FongMi fork of androidx/media,
+  # which is public, so they are built here rather than committed or smuggled
+  # through a secret (a GitHub secret caps at 48 KB; the set is ~150 MB).
+  MEDIA_REPO: https://github.com/FongMi/media.git
+  # Pinned to the release-1.11.0-fongmi tip so the build is reproducible.
+  MEDIA_REF: 3c2cbe8ac742c2fe15eff52f03eeb3b1b648848d
+  MEDIA_AARS: |
+    lib-common-release.aar
+    lib-container-release.aar
+    lib-database-release.aar
+    lib-datasource-release.aar
+    lib-datasource-okhttp-release.aar
+    lib-datasource-rtmp-release.aar
+    lib-decoder-release.aar
+    lib-decoder-ffmpeg-release.aar
+    lib-decoder-mpegh-release.aar
+    lib-effect-release.aar
+    lib-exoplayer-release.aar
+    lib-exoplayer-dash-release.aar
+    lib-exoplayer-hls-release.aar
+    lib-exoplayer-rtsp-release.aar
+    lib-exoplayer-smoothstreaming-release.aar
+    lib-extractor-release.aar
+    lib-mpvplayer-release.aar
+    lib-session-release.aar
+    lib-ui-release.aar
+    lib-ui-danmaku-release.aar
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Stage 1: produce the media3 AARs the app compiles against. This is the
+  # list in FongMi/media/move.txt, which the upstream author copies into
+  # app/libs/ with move.bat; every entry maps to a :lib-* Gradle project.
+  # ---------------------------------------------------------------------------
+  media-aar:
+    name: build media3 AARs
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Setup JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # ubuntu-latest ships the SDK at /usr/local/lib/android/sdk but exports
+      # neither ANDROID_HOME/ANDROID_SDK_ROOT nor a PATH entry for sdkmanager,
+      # so it is wired up here instead of via a third-party action.
+      - name: Setup Android SDK
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          test -d "$SDK_ROOT" || { echo "::error::Android SDK not found at $SDK_ROOT"; exit 1; }
+          CMDLINE_BIN=$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1)
+          test -n "$CMDLINE_BIN" || {
+            echo "::error::sdkmanager not found under $SDK_ROOT/cmdline-tools"
+            ls -R "$SDK_ROOT/cmdline-tools" | head -30
+            exit 1
+          }
+          {
+            echo "ANDROID_SDK_ROOT=$SDK_ROOT"
+            echo "ANDROID_HOME=$SDK_ROOT"
+          } >> "$GITHUB_ENV"
+          echo "$(dirname "$CMDLINE_BIN")" >> "$GITHUB_PATH"
+
+      # `yes` exits 141 (SIGPIPE) once sdkmanager closes stdin, so the pipeline
+      # status cannot be trusted. Assert on the output instead, and dump the
+      # log when the assertion fails so a missing sdkmanager cannot pass.
+      - name: Accept SDK licenses
+        run: |
+          yes | sdkmanager --licenses > /tmp/licenses.log 2>&1 || true
+          tail -n 5 /tmp/licenses.log
+          if ! grep -qiE "licenses? accepted|already accepted" /tmp/licenses.log; then
+            echo "::error::sdkmanager did not report accepted licenses"
+            cat /tmp/licenses.log
+            exit 1
+          fi
+
+      # Package names verified against the SDK repository XML: platform 36 ships
+      # bare ("android-36"), whereas API 37 is minor-versioned ("android-37.0")
+      # and a bare "platforms;android-37" does not exist. media/ compiles
+      # against 36, TV/ against 37.0.
+      #
+      # NDK 29 is not decorative: libraries/decoder_ffmpeg sets
+      #   ndkVersion = native-dependencies...["android.ndk.version"] = 29.0.14206865
+      # and its CMake path IS armed, because the guard
+      #   if (project.file("src/main/ffmpeg/include/libavcodec/avcodec.h").exists())
+      # is satisfied -- the FFmpeg headers (48 files) and the libplacebo
+      # renderer SDK (73 files, incl. lib/libplacebo.a for both ABIs) are
+      # committed in the fork. So libffmpegJNI is really compiled here.
+      - name: Install required SDK packages
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "platforms;android-37.0" \
+            "build-tools;36.0.0" \
+            "build-tools;37.0.0" \
+            "ndk;29.0.14206865" \
+            "cmake;3.22.1"
+          sdkmanager --list_installed
+
+      # The native libraries are already committed in the fork, so neither
+      # FongMi/mpv nor FongMi/FFmpeg has to be compiled:
+      #   libraries/mpvplayer/src/main/jniLibs/{arm64-v8a,armeabi-v7a}/libmpv.so
+      #   libraries/decoder_ffmpeg/src/main/jniLibs/*/libav*.so
+      - name: Checkout media fork
+        run: |
+          mkdir media && cd media
+          git init -q
+          git remote add origin "$MEDIA_REPO"
+          if git fetch --depth 1 origin "$MEDIA_REF" 2>/dev/null; then
+            git checkout -q FETCH_HEAD
+          else
+            echo "::warning::MEDIA_REF $MEDIA_REF could not be fetched directly; falling back to the release-1.11.0-fongmi tip."
+            git fetch --depth 1 origin release-1.11.0-fongmi
+            git checkout -q FETCH_HEAD
+          fi
+          git log -1 --oneline
+
+      - name: Build AARs
+        run: |
+          cd media
+          printf 'sdk.dir=%s\n' "$ANDROID_SDK_ROOT" > local.properties
+          TASKS=""
+          while read -r name; do
+            [ -n "$name" ] || continue
+            TASKS="$TASKS :${name%-release.aar}:assembleRelease"
+          done <<< "$MEDIA_AARS"
+          echo "tasks:$TASKS"
+          # shellcheck disable=SC2086
+          ./gradlew $TASKS --no-daemon --stacktrace
+
+      # Fail loudly on any missing AAR rather than letting the app build die
+      # later with an obscure "package androidx.media3.mpvplayer does not exist".
+      - name: Collect AARs
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/aars"
+          find media/libraries -path "*/outputs/aar/lib-*-release.aar" -exec cp -v {} "$GITHUB_WORKSPACE/aars/" \;
+          missing=""
+          while read -r name; do
+            [ -n "$name" ] || continue
+            [ -f "$GITHUB_WORKSPACE/aars/$name" ] || missing="$missing $name"
+          done <<< "$MEDIA_AARS"
+          if [ -n "$missing" ]; then
+            echo "::error::missing AARs:$missing"
+            find media/libraries -name "lib-*.aar" | head -50
+            exit 1
+          fi
+          ls -la "$GITHUB_WORKSPACE/aars"
+
+      - name: Upload AARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-aars
+          path: aars/*.aar
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Stage 2: build the app against those AARs.
+  # ---------------------------------------------------------------------------
   build:
     name: assemble (${{ matrix.variant }})
+    needs: media-aar
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -51,22 +212,19 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # The repository does not ship the player AAR. app/libs/.gitignore
-      # excludes 'lib-*.aar' and README states plainly that a plain clone does
-      # not contain the full player dependency. The MPV engine imports
-      # androidx.media3.mpvplayer.*, which resolves on neither Google Maven nor
-      # Maven Central (both 404), so ':app' cannot compile without it.
-      # Supply it as a base64 GitHub Secret; it is decoded into app/libs/ here.
-      - name: Add player AAR
-        env:
-          PLAYER_AAR_B64: ${{ secrets.PLAYER_AAR_B64 }}
-        run: |
-          if [ -z "$PLAYER_AAR_B64" ]; then
-            echo "::error::Secret PLAYER_AAR_B64 is not set. ':app' imports androidx.media3.mpvplayer.*, which is on no public Maven repository, and app/libs/*.aar does not contain it. Base64-encode the local app/libs/lib-*.aar and save it as the PLAYER_AAR_B64 repository secret."
-            exit 1
-          fi
-          echo "$PLAYER_AAR_B64" | base64 -d > app/libs/lib-player.aar
-          ls -la app/libs/
+      - name: Fetch player AARs
+        uses: actions/download-artifact@v4
+        with:
+          name: media-aars
+          path: app/libs
+
+      # README lists Python 3.10 among the build prerequisites: Chaquopy uses a
+      # host interpreter (buildPython) to resolve and fetch the target packages
+      # declared in chaquo/requirements.txt.
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
       # Must run before the SDK setup: sdkmanager itself needs JAVA_HOME.
       - name: Setup JDK 21
@@ -75,13 +233,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # ubuntu-latest ships the SDK at /usr/local/lib/android/sdk but exports
-      # neither ANDROID_HOME/ANDROID_SDK_ROOT nor a PATH entry for sdkmanager,
-      # which is why every sdkmanager call previously exited 127.
-      # We wire up the pre-installed SDK instead of pulling a third-party
-      # action: android-actions/setup-android@v3 fails on
-      # "Failed to find package 'tools'", a package long removed from the SDK
-      # repository. Nothing is downloaded here.
       - name: Setup Android SDK
         run: |
           SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
@@ -97,13 +248,7 @@ jobs:
             echo "ANDROID_HOME=$SDK_ROOT"
           } >> "$GITHUB_ENV"
           echo "$(dirname "$CMDLINE_BIN")" >> "$GITHUB_PATH"
-          echo "sdkmanager: $CMDLINE_BIN"
-          ls "$SDK_ROOT"
 
-      # `yes` exits 141 (SIGPIPE) as soon as sdkmanager closes stdin, so the
-      # pipeline exit status comes from `yes` and cannot be trusted. Assert on
-      # the output instead -- and dump the whole log when the assertion fails,
-      # so a missing sdkmanager (127) can never pass unnoticed again.
       - name: Accept SDK licenses
         run: |
           yes | sdkmanager --licenses > /tmp/licenses.log 2>&1 || true
@@ -114,15 +259,18 @@ jobs:
             exit 1
           fi
 
-      # API 37 ships as minor-versioned platform packages (android-37.0 /
-      # 37.1 / 37.2) -- a bare "platforms;android-37" does not exist and makes
-      # sdkmanager fail immediately. build-tools 37.0.0 supplies the
-      # zipalign + apksigner.jar used by AbiApkPackaging.groovy.
-      # NDK is intentionally omitted: the vendored -release.aar modules ship
-      # pre-built .so files and nothing in this profile is cross-compiled.
+      # build-tools 37.0.0 supplies the zipalign + apksigner.jar used by
+      # AbiApkPackaging.groovy for the ABI-split release packaging. The NDK and
+      # CMake are for Chaquopy: when chaquo/requirements.txt resolves no
+      # prebuilt wheel for a package it compiles that package from source.
       - name: Install required SDK packages
         run: |
-          sdkmanager "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-37.0" \
+            "build-tools;37.0.0" \
+            "ndk;29.0.14206865" \
+            "cmake;3.22.1"
           sdkmanager --list_installed
 
       # CRITICAL: app/build.gradle:9 unconditionally reads local.properties.
@@ -155,9 +303,10 @@ jobs:
       - name: Print environment
         run: |
           java -version
+          python3 --version || true
           ./gradlew --version
           echo "SDK: $ANDROID_SDK_ROOT"
-          ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
+          ls -la app/libs/
 
       - name: Build ${{ matrix.variant }}
         run: ./gradlew :app:assemble${{ matrix.variant }} --no-daemon --stacktrace
