@@ -266,6 +266,75 @@ jobs:
               handle.write("\n".join(report) + "\n")
           PY
 
+      - name: Setup JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # baksmali turns the dex back into smali. R8 renamed seven of the ten
+      # classes, so this is NOT a source of compilable symbols; it is the only
+      # way to read the JNI bridge that survived verbatim (LibassNative,
+      # LibassFrame, LibassImage) together with the classes that reference it,
+      # which is what a re-implementation has to match.
+      #
+      # Allowed to fail: the artifact that matters (native libraries, dex,
+      # report) is already produced by the previous step.
+      - name: Decompile the libass classes with baksmali
+        continue-on-error: true
+        run: |
+          curl -fSL --retry 5 --retry-all-errors --retry-delay 3 -o baksmali.jar \
+            https://github.com/JesusFreke/smali/releases/download/v2.5.2/baksmali-2.5.2.jar
+          ls -l baksmali.jar
+          mkdir -p smali
+          for dex in out/dex/*.dex; do
+            name="$(basename "$dex" .dex)"
+            java -jar baksmali.jar d "$dex" -o "smali/$name" \
+              || echo "::warning::baksmali could not decode $dex"
+          done
+          python3 - <<'PY'
+          import os
+          import shutil
+
+          SRC = "smali"
+          DST = "out/smali-libass"
+          # The three names R8 kept are the anchors: anything that mentions them
+          # belongs to the same feature, whatever it ended up being called.
+          MARKERS = ("LibassNative", "LibassFrame", "LibassImage")
+
+          copied = 0
+          for root, _, files in os.walk(SRC):
+              for name in files:
+                  if not name.endswith(".smali"):
+                      continue
+                  path = os.path.join(root, name)
+                  rel = os.path.relpath(path, SRC)
+                  if "libass" in rel.lower():
+                      hit = True
+                  else:
+                      hit = False
+                      try:
+                          with open(path, encoding="utf-8", errors="replace") as handle:
+                              text = handle.read()
+                      except OSError:
+                          text = ""
+                      for marker in MARKERS:
+                          if marker in text:
+                              hit = True
+                              break
+                  if not hit:
+                      continue
+                  target = os.path.join(DST, rel)
+                  os.makedirs(os.path.dirname(target), exist_ok=True)
+                  shutil.copyfile(path, target)
+                  copied += 1
+
+          print(f"libass-related smali files copied: {copied}")
+          for root, _, files in os.walk(DST):
+              for name in sorted(files)[:200]:
+                  print("  " + os.path.relpath(os.path.join(root, name), DST))
+          PY
+
       - name: Upload recon output
         uses: actions/upload-artifact@v4
         with:
