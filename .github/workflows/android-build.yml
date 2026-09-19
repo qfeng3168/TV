@@ -46,59 +46,65 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Must run before the SDK setup: sdkmanager itself needs JAVA_HOME.
       - name: Setup JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
 
-      # Note: sdkmanager is pre-installed on ubuntu-latest. We avoid
-      # android-actions/setup-android to prevent mutable-tag supply-chain risk.
+      # ubuntu-latest no longer ships the Android SDK: there is no
+      # ANDROID_HOME/ANDROID_SDK_ROOT and no sdkmanager on PATH, so this
+      # action is required -- without it every sdkmanager call exits 127.
+      # Pinned to a commit SHA because the v3 tag is mutable.
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+
+      # `yes` exits 141 (SIGPIPE) as soon as sdkmanager closes stdin, so the
+      # pipeline exit status comes from `yes` and cannot be trusted. Assert on
+      # the output instead -- and dump the whole log when the assertion fails,
+      # so a missing sdkmanager (127) can never pass unnoticed again.
       - name: Accept SDK licenses
-        run: yes | sdkmanager --licenses 2>&1 | tail -5
+        run: |
+          yes | sdkmanager --licenses > /tmp/licenses.log 2>&1 || true
+          tail -n 5 /tmp/licenses.log
+          if ! grep -qiE "licenses? accepted|already accepted" /tmp/licenses.log; then
+            echo "::error::sdkmanager did not report accepted licenses"
+            cat /tmp/licenses.log
+            exit 1
+          fi
 
-      # Only install build-tools;37.0.0 (contains zipalign + apksigner.jar,
-      # needed by AbiApkPackaging.groovy). Do NOT install NDK explicitly —
-      # Chaquopy downloads and manages its own NDK during the Python
-      # cross-compile step, and the vendored -release.aar modules ship
-      # pre-built .so files (no NDK compile needed in CI).
+      # API 37 ships as minor-versioned platform packages (android-37.0 /
+      # 37.1 / 37.2) -- a bare "platforms;android-37" does not exist and makes
+      # sdkmanager fail immediately. build-tools 37.0.0 supplies the
+      # zipalign + apksigner.jar used by AbiApkPackaging.groovy.
+      # NDK is intentionally omitted: the vendored -release.aar modules ship
+      # pre-built .so files and nothing in this profile is cross-compiled.
       - name: Install required SDK packages
         run: |
-          sdkmanager \
-            "build-tools;37.0.0" \
-            "platforms;android-37"
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
+          sdkmanager --list_installed
 
       # CRITICAL: app/build.gradle:9 unconditionally reads local.properties.
       # Without this step, gradle configure fails with FileNotFoundException.
       - name: Generate local.properties
         run: |
+          test -n "$ANDROID_SDK_ROOT" || { echo "::error::ANDROID_SDK_ROOT is empty"; exit 1; }
           printf 'sdk.dir=%s\nstoreFile=\nkeyAlias=\nstorePassword=\nkeyPassword=\n' "$ANDROID_SDK_ROOT" > local.properties
           cat local.properties
 
-      - name: Cache Gradle + Chaquopy
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}-${{ hashFiles('app/build.gradle') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Setup Gradle wrapper
+      # Sole cache owner: setup-gradle caches the Gradle User Home (including
+      # Chaquopy's downloads) and the wrapper distribution. A separate
+      # actions/cache step would duplicate the same paths under different keys.
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache: true
-          cache-dependency-path: gradle/libs.versions.toml
 
       - name: Print environment
         run: |
           java -version
-          gradle --version
+          ./gradlew --version
           echo "SDK: $ANDROID_SDK_ROOT"
           ls -la "$ANDROID_SDK_ROOT/build-tools/" || true
-          ls -la "$ANDROID_SDK_ROOT/ndk/" || true
 
       - name: Build ${{ matrix.variant }}
         run: ./gradlew :app:assemble${{ matrix.variant }} --no-daemon --stacktrace
