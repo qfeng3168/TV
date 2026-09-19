@@ -2,7 +2,7 @@ name: Android Build
 
 on:
   push:
-    branches: [fongmi]
+    branches: [fongmi, 'ci/**']
     paths:
       - "app/**"
       - "catvod/**"
@@ -16,6 +16,7 @@ on:
       - "gradle/libs.versions.toml"
       - ".github/workflows/android-build.yml"
   pull_request:
+    branches: [fongmi]
   workflow_dispatch:
 
 permissions:
@@ -37,7 +38,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [mobileDebug, leanbackDebug]
+        include:
+          - variant: mobileDebug
+            flavor: mobile
+          - variant: leanbackDebug
+            flavor: leanback
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -101,6 +106,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tv-${{ matrix.variant }}
-          path: app/build/outputs/apk/*/${{ matrix.variant }}/*.apk
+          path: app/build/outputs/apk/${{ matrix.flavor }}/debug/*.apk
           if-no-files-found: warn
           retention-days: 7
