@@ -194,8 +194,19 @@
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/line"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            
+            android:visibility="gone"
             tools:text="來源 1" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/shift"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/shape_chip_round"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/live_shift"
+            android:textColor="@color/on_surface_high"
+            android:visibility="gone" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

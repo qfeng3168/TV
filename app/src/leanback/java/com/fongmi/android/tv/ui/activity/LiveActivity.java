@@ -97,6 +97,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private List<Group> mHides;
     private Group mGroup;
     private Channel mChannel;
+    private EpgData mCurrentEpg;
     private String mPlaybackKey;
     private int count;
 
@@ -188,6 +189,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.control.action.change.setOnClickListener(view -> onChange());
         mBinding.control.action.player.setOnClickListener(view -> onPlayer());
         mBinding.control.action.decode.setOnClickListener(view -> onDecode());
+        mBinding.widget.shift.setOnClickListener(view -> onShift());
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
         mBinding.group.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
@@ -684,7 +686,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     private void setInfo() {
         mViewModel.getEpg(mChannel);
+        mCurrentEpg = null;
         mBinding.widget.play.setText("");
+        mBinding.widget.shift.setVisibility(View.GONE);
         mBinding.widget.name.setMaxEms(48);
         mChannel.loadLogo(mBinding.widget.logo);
         mBinding.widget.line.setText(mChannel.getLine());
@@ -698,10 +702,12 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void onEpgLoaded(Epg epg) {
         if (mChannel == null || !mChannel.getTvgId().equals(epg.getKey())) return;
         EpgData data = epg.getEpgData();
+        mCurrentEpg = data;
         boolean hasTitle = !data.getTitle().isEmpty();
         mEpgDataAdapter.addAll(epg.getList());
         mBinding.widget.name.setMaxEms(hasTitle ? 12 : 48);
         mBinding.widget.play.setText(data.format());
+        mBinding.widget.shift.setVisibility(mChannel.hasShift() ? View.VISIBLE : View.GONE);
         mLive.onEpgChanged(data);
         setWidth(epg);
     }
@@ -823,6 +829,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void showCatchupReady(EpgData data) {
         Notify.show(getString(R.string.play_ready, data.getTitle()));
+    }
+
+    private void onShift() {
+        if (mCurrentEpg == null || mChannel == null || !mChannel.hasShift()) return;
+        mLive.selectShift(mCurrentEpg, player().getPosition());
     }
 
     private void resetAdapter() {
