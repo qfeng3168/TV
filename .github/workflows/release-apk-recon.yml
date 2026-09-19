@@ -272,62 +272,70 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # baksmali turns the dex back into smali. R8 renamed seven of the ten
-      # classes, so this is NOT a source of compilable symbols; it is the only
-      # way to read the JNI bridge that survived verbatim (LibassNative,
-      # LibassFrame, LibassImage) together with the classes that reference it,
-      # which is what a re-implementation has to match.
+      # apktool is taken from the CatVodSpider repository rather than from its
+      # own releases: the same jar is committed there and is already exercised
+      # by the spider workflow, and the baksmali equivalent (v2.5.2) has no
+      # downloadable asset.
+      - name: Checkout apktool
+        uses: actions/checkout@v4
+        with:
+          repository: FongMi/CatVodSpider
+          ref: db4cf26356fa59d1331769f11cbbfb2a779227e6
+          path: apktool-src
+          sparse-checkout: jar/3rd
+
+      # Decoding produces smali, which is NOT a source of compilable symbols -
+      # R8 renamed seven of the ten classes. It is the only public record of the
+      # JNI bridge that survived verbatim (LibassNative, LibassFrame,
+      # LibassImage) and of the classes that reference it, which is what any
+      # re-implementation has to match.
       #
-      # Allowed to fail: the artifact that matters (native libraries, dex,
+      # Allowed to fail: the artifact that matters (native libraries, dex files,
       # report) is already produced by the previous step.
-      - name: Decompile the libass classes with baksmali
+      - name: Decompile the dex with apktool
         continue-on-error: true
         run: |
-          curl -fSL --retry 5 --retry-all-errors --retry-delay 3 -o baksmali.jar \
-            https://github.com/JesusFreke/smali/releases/download/v2.5.2/baksmali-2.5.2.jar
-          ls -l baksmali.jar
-          mkdir -p smali
-          for dex in out/dex/*.dex; do
-            name="$(basename "$dex" .dex)"
-            java -jar baksmali.jar d "$dex" -o "smali/$name" \
-              || echo "::warning::baksmali could not decode $dex"
-          done
+          ls -l apktool-src/jar/3rd/apktool_2.11.0.jar
+          # --no-res skips resource decoding, which is where apktool spends most
+          # of its time; only the class list is wanted here.
+          java -Xmx3g -jar apktool-src/jar/3rd/apktool_2.11.0.jar d -f --no-res \
+            -o smali "apk/$APK_NAME" || echo "::warning::apktool could not decode the APK"
+          ls -d smali* 2>/dev/null || true
           python3 - <<'PY'
+          import glob
           import os
           import shutil
 
-          SRC = "smali"
           DST = "out/smali-libass"
-          # The three names R8 kept are the anchors: anything that mentions them
-          # belongs to the same feature, whatever it ended up being called.
+          # The three names R8 kept are the anchors: whatever else mentions them
+          # belongs to the same feature, however it ended up being called.
           MARKERS = ("LibassNative", "LibassFrame", "LibassImage")
 
           copied = 0
-          for root, _, files in os.walk(SRC):
-              for name in files:
-                  if not name.endswith(".smali"):
-                      continue
-                  path = os.path.join(root, name)
-                  rel = os.path.relpath(path, SRC)
-                  if "libass" in rel.lower():
-                      hit = True
-                  else:
-                      hit = False
-                      try:
-                          with open(path, encoding="utf-8", errors="replace") as handle:
-                              text = handle.read()
-                      except OSError:
-                          text = ""
-                      for marker in MARKERS:
-                          if marker in text:
-                              hit = True
-                              break
-                  if not hit:
-                      continue
-                  target = os.path.join(DST, rel)
-                  os.makedirs(os.path.dirname(target), exist_ok=True)
-                  shutil.copyfile(path, target)
-                  copied += 1
+          for src in sorted(glob.glob("smali*")):
+              if not os.path.isdir(src):
+                  continue
+              for root, _, files in os.walk(src):
+                  for name in files:
+                      if not name.endswith(".smali"):
+                          continue
+                      path = os.path.join(root, name)
+                      rel = os.path.join(src, os.path.relpath(path, src))
+                      if "libass" in rel.lower():
+                          hit = True
+                      else:
+                          try:
+                              with open(path, encoding="utf-8", errors="replace") as handle:
+                                  text = handle.read()
+                          except OSError:
+                              text = ""
+                          hit = any(marker in text for marker in MARKERS)
+                      if not hit:
+                          continue
+                      target = os.path.join(DST, rel)
+                      os.makedirs(os.path.dirname(target), exist_ok=True)
+                      shutil.copyfile(path, target)
+                      copied += 1
 
           print(f"libass-related smali files copied: {copied}")
           for root, _, files in os.walk(DST):
