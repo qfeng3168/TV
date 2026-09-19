@@ -27,7 +27,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ANDROID_NDK_VERSION: 28.2.13676358
   GRADLE_JAVA_OPTS: -Xmx3072m
 
 jobs:
@@ -59,13 +58,16 @@ jobs:
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses 2>&1 | tail -5
 
+      # Only install build-tools;37.0.0 (contains zipalign + apksigner.jar,
+      # needed by AbiApkPackaging.groovy). Do NOT install NDK explicitly —
+      # Chaquopy downloads and manages its own NDK during the Python
+      # cross-compile step, and the vendored -release.aar modules ship
+      # pre-built .so files (no NDK compile needed in CI).
       - name: Install required SDK packages
         run: |
           sdkmanager \
-            "platform-tools" \
-            "platforms;android-37" \
             "build-tools;37.0.0" \
-            "ndk;${ANDROID_NDK_VERSION}"
+            "platforms;android-37"
 
       # CRITICAL: app/build.gradle:9 unconditionally reads local.properties.
       # Without this step, gradle configure fails with FileNotFoundException.
