@@ -337,6 +337,10 @@ public class Channel {
         return !getCatchup().isEmpty();
     }
 
+    public boolean hasShift() {
+        return getCatchup().hasShift();
+    }
+
     public String getLine() {
         if (getUrls().size() <= 1) return "";
         String[] sp = getUrls().get(getIndex()).split("\\$");

@@ -24,6 +24,8 @@ public class LiveParser {
     private static final Pattern CATCHUP_REPLACE = Pattern.compile(".*catchup-replace=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
+    private static final Pattern SHIFT_SOURCE = Pattern.compile(".*shift-source=\"(.?|.+?)\".*");
+    private static final Pattern SHIFT = Pattern.compile(".*shift=\"(.?|.+?)\".*");
     private static final Pattern TVG_CHNO = Pattern.compile(".*tvg-chno=\"(.?|.+?)\".*");
     private static final Pattern TVG_LOGO = Pattern.compile(".*tvg-logo=\"(.?|.+?)\".*");
     private static final Pattern TVG_NAME = Pattern.compile(".*tvg-name=\"(.?|.+?)\".*");
@@ -92,6 +94,8 @@ public class LiveParser {
                 catchup.setType(extract(line, CATCHUP));
                 catchup.setSource(extract(line, CATCHUP_SOURCE));
                 catchup.setReplace(extract(line, CATCHUP_REPLACE));
+                catchup.setShift(extract(line, SHIFT));
+                catchup.setShiftSource(extract(line, SHIFT_SOURCE));
                 if (live.getEpg().isEmpty()) live.setEpg(extract(line, TVG_URL).replace("\"", ""));
                 if (live.getEpg().isEmpty()) live.setEpg(extract(line, URL_TVG).replace("\"", ""));
                 if (live.getEpg().isEmpty()) live.setEpg(extract(line, "tvg-url=", "url-tvg="));
@@ -107,6 +111,8 @@ public class LiveParser {
                 unknown.setType(extract(line, CATCHUP));
                 unknown.setSource(extract(line, CATCHUP_SOURCE));
                 unknown.setReplace(extract(line, CATCHUP_REPLACE));
+                unknown.setShift(extract(line, SHIFT));
+                unknown.setShiftSource(extract(line, SHIFT_SOURCE));
                 channel.setCatchup(Catchup.decide(unknown, catchup));
             } else if (!line.startsWith("#") && line.contains("://")) {
                 String[] parts = line.split("\\|", 2);

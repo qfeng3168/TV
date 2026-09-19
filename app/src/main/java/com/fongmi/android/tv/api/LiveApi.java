@@ -50,8 +50,13 @@ public class LiveApi {
 
     @NonNull
     public static Result getUrl(@NonNull Channel item, @NonNull EpgData data) throws Exception {
+        return getUrl(item, data, false);
+    }
+
+    @NonNull
+    public static Result getUrl(@NonNull Channel item, @NonNull EpgData data, boolean useShift) throws Exception {
         Result result = getUrl(item);
-        result.setUrl(item.getCatchup().format(result.getRealUrl(), data));
+        result.setUrl(useShift ? item.getCatchup().formatShift(result.getRealUrl(), data) : item.getCatchup().format(result.getRealUrl(), data));
         if (item.isRtsp()) result.getHeader().put("rtsp_range", data.getRange());
         return result;
     }

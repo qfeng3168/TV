@@ -65,6 +65,19 @@ public class LivePlaybackController {
         return requestCatchup(data, C.TIME_UNSET);
     }
 
+    public boolean selectShift(EpgData data) {
+        return selectShift(data, C.TIME_UNSET);
+    }
+
+    public boolean selectShift(EpgData data, long startPositionMs) {
+        Channel channel = state.getChannel();
+        if (channel == null || data == null) return false;
+        if (!channel.hasShift()) return false;
+        if (data.isSelected()) return requestShift(data, startPositionMs);
+        host.renderEpgSelection(data);
+        return requestShift(data, C.TIME_UNSET);
+    }
+
     public void onPlaybackResult(PlaybackResult<LivePlayRequest> playback) {
         if (playback == null || cannotApply(playback)) return;
         applyPlaybackResult(playback.result(), playback.request());
@@ -107,7 +120,8 @@ public class LivePlaybackController {
         LivePlayRequest request = state.getActiveRequest();
         if (request != null && request.isCatchup() && request.matches(channel)) {
             long startPositionMs = host.hasPlaybackSession() ? host.getPlayerPosition() : request.getPosition();
-            requestPlayback(LivePlayRequest.catchup(channel, request.getCatchupData(), startPositionMs), true);
+            LivePlayRequest restored = request.isShift() ? LivePlayRequest.shift(channel, request.getCatchupData(), startPositionMs) : LivePlayRequest.catchup(channel, request.getCatchupData(), startPositionMs);
+            requestPlayback(restored, true);
         } else {
             requestLive();
         }
@@ -217,6 +231,13 @@ public class LivePlaybackController {
         Channel channel = state.getChannel();
         if (channel == null) return false;
         requestPlayback(LivePlayRequest.catchup(channel, data, startPositionMs), false);
+        return true;
+    }
+
+    private boolean requestShift(EpgData data, long startPositionMs) {
+        Channel channel = state.getChannel();
+        if (channel == null) return false;
+        requestPlayback(LivePlayRequest.shift(channel, data, startPositionMs), false);
         return true;
     }
 

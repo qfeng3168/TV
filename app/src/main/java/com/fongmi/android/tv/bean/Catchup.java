@@ -27,6 +27,10 @@ public class Catchup {
     private String source;
     @SerializedName("replace")
     private String replace;
+    @SerializedName("shift")
+    private String shift;
+    @SerializedName("shiftSource")
+    private String shiftSource;
 
     public static Catchup PLTV() {
         Catchup item = new Catchup();
@@ -88,6 +92,26 @@ public class Catchup {
         this.source = source;
     }
 
+    public String getShift() {
+        return TextUtils.isEmpty(shift) ? "" : shift;
+    }
+
+    public void setShift(String shift) {
+        this.shift = shift;
+    }
+
+    public String getShiftSource() {
+        return TextUtils.isEmpty(shiftSource) ? "" : shiftSource;
+    }
+
+    public void setShiftSource(String shiftSource) {
+        this.shiftSource = shiftSource;
+    }
+
+    public boolean hasShift() {
+        return !getShiftSource().isEmpty();
+    }
+
     public boolean match(String url) {
         return url.contains(getRegex()) || Pattern.compile(getRegex()).matcher(url).find();
     }
@@ -109,6 +133,13 @@ public class Catchup {
 
     public String format(String url, EpgData data) {
         String result = getSource();
+        Matcher matcher = TOKEN_PATTERN.matcher(result);
+        while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), data.getStartTime(), data.getEndTime()));
+        return isDefault() ? result : append(url, result);
+    }
+
+    public String formatShift(String url, EpgData data) {
+        String result = getShiftSource();
         Matcher matcher = TOKEN_PATTERN.matcher(result);
         while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), data.getStartTime(), data.getEndTime()));
         return isDefault() ? result : append(url, result);
