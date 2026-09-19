@@ -53,12 +53,30 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # ubuntu-latest no longer ships the Android SDK: there is no
-      # ANDROID_HOME/ANDROID_SDK_ROOT and no sdkmanager on PATH, so this
-      # action is required -- without it every sdkmanager call exits 127.
-      # Pinned to a commit SHA because the v3 tag is mutable.
+      # ubuntu-latest ships the SDK at /usr/local/lib/android/sdk but exports
+      # neither ANDROID_HOME/ANDROID_SDK_ROOT nor a PATH entry for sdkmanager,
+      # which is why every sdkmanager call previously exited 127.
+      # We wire up the pre-installed SDK instead of pulling a third-party
+      # action: android-actions/setup-android@v3 fails on
+      # "Failed to find package 'tools'", a package long removed from the SDK
+      # repository. Nothing is downloaded here.
       - name: Setup Android SDK
-        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          test -d "$SDK_ROOT" || { echo "::error::Android SDK not found at $SDK_ROOT"; exit 1; }
+          CMDLINE_BIN=$(ls -d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n 1)
+          test -n "$CMDLINE_BIN" || {
+            echo "::error::sdkmanager not found under $SDK_ROOT/cmdline-tools"
+            ls -R "$SDK_ROOT/cmdline-tools" | head -30
+            exit 1
+          }
+          {
+            echo "ANDROID_SDK_ROOT=$SDK_ROOT"
+            echo "ANDROID_HOME=$SDK_ROOT"
+          } >> "$GITHUB_ENV"
+          echo "$(dirname "$CMDLINE_BIN")" >> "$GITHUB_PATH"
+          echo "sdkmanager: $CMDLINE_BIN"
+          ls "$SDK_ROOT"
 
       # `yes` exits 141 (SIGPIPE) as soon as sdkmanager closes stdin, so the
       # pipeline exit status comes from `yes` and cannot be trusted. Assert on
