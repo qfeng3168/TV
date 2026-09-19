@@ -8,26 +8,22 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/title"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:ellipsize="marquee"
         android:singleLine="true"
         android:textColor="@color/text"
-        android:textSize="16sp"
         tools:text="七龍珠" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/time"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
         android:ellipsize="marquee"
         android:singleLine="true"
         android:textColor="@color/text"
-        android:textSize="14sp"
         tools:text="18:00 ~ 19:00" />
 
 </com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>

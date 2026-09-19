@@ -5,8 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/text"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_weight="1"
@@ -16,8 +15,7 @@
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="18sp"
+        
         tools:text="https://fongmi.github.io/cat.json" />
 
     <androidx.appcompat.widget.AppCompatImageView

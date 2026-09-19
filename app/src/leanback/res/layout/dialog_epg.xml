@@ -6,8 +6,7 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <com.fongmi.android.tv.ui.custom.CustomEditText
-        android:id="@+id/text"
+    <com.fongmi.android.tv.ui.custom.CustomEditText style="@style/Kiwi.Text.BodyLarge" android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/setting_epg"
@@ -16,7 +15,6 @@
         android:inputType="textUri"
         android:nextFocusDown="@id/positive"
         android:singleLine="true"
-        android:textSize="18sp"
         tools:text="https://epg.example.com/{id}.xml" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -25,8 +23,7 @@
         android:layout_marginTop="16dp"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/positive"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/positive"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -37,11 +34,9 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_positive"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
+             />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/negative"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/negative"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -51,8 +46,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_negative"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
+             />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

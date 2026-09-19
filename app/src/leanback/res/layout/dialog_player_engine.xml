@@ -13,14 +13,12 @@
         android:paddingTop="24dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/title"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_engine"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
+             />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/debug"
@@ -42,8 +40,7 @@
         android:paddingEnd="24dp"
         android:paddingBottom="24dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/exo"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/exo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -51,11 +48,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:text="@string/play_exo"
-            android:textColor="@color/text"
-            android:textSize="14sp" />
+            android:textColor="@color/text" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/mpv"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/mpv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -63,19 +58,16 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:text="@string/play_mpv"
-            android:textColor="@color/text"
-            android:textSize="14sp" />
+            android:textColor="@color/text" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/other"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selector_chip_round"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:text="@string/play_other"
-            android:textColor="@color/text"
-            android:textSize="14sp" />
+            android:textColor="@color/text" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.appcompat.widget.LinearLayoutCompat>

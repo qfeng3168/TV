@@ -12,14 +12,12 @@
         android:indeterminate="true"
         app:indicatorColor="@color/white" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/traffic"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/traffic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="40dp"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        
         android:visibility="gone"
         tools:text="120 KB/s"
         tools:visibility="visible" />

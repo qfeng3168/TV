@@ -15,8 +15,7 @@
         android:paddingTop="24dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/keyword"
+        <com.google.android.material.textfield.TextInputEditText style="@style/Kiwi.Text.Caption" android:id="@+id/keyword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -26,8 +25,7 @@
             android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
             android:maxLength="255"
             android:nextFocusDown="@id/recycler"
-            android:singleLine="true"
-            android:textSize="14sp" />
+            android:singleLine="true" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/setting"

@@ -65,20 +65,17 @@
             android:layout_height="56dp"
             android:src="@drawable/ic_widget_error" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/text"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             tools:text="@string/error_play_url" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/message"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
@@ -86,8 +83,7 @@
         android:background="@drawable/shape_widget_message"
         android:fontFeatureSettings="tnum"
         android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        
         android:visibility="gone"
         tools:text="Speed 3.0x"
         tools:visibility="visible" />
@@ -114,31 +110,25 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/position"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
-                android:textSize="16sp"
+                
                 tools:text="00:00:00" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:text="/"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/duration"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFeatureSettings="tnum"
-                android:textColor="@color/white"
-                android:textSize="16sp"
+                
                 tools:text="00:00:00" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

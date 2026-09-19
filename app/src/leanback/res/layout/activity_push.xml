@@ -12,24 +12,20 @@
         android:layout_height="250dp"
         android:scaleType="fitXY" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/info"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:gravity="center"
         android:lineSpacingExtra="8dp"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+         />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/clip"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/clip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:background="@drawable/shape_item_normal"
         android:text="@string/push_clip"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+         />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

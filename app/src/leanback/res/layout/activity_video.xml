@@ -50,20 +50,17 @@
 
     </FrameLayout>
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/name"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Title" android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:layout_toEndOf="@+id/video"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="24sp"
+        
         tools:text="慶餘年第二季" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/remark"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/name"
@@ -71,8 +68,7 @@
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        
         tools:text="更新到第二季" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -85,49 +81,40 @@
         android:layout_marginEnd="24dp"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/site"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/site"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             tools:text="站源：泥巴" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/year"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/year"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             tools:text="年份：2022" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/area"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/area"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             tools:text="地區：台灣" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/type"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             tools:text="類型：科幻" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/director"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/director"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/row1"
@@ -136,12 +123,10 @@
         android:layout_marginEnd="24dp"
         android:nextFocusDown="@id/actor"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        
         tools:text="導演：FongMi" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/actor"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/actor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/director"
@@ -151,8 +136,7 @@
         android:ellipsize="end"
         android:maxLines="2"
         android:nextFocusDown="@id/content"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        
         tools:text="演員：FongMi" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -163,8 +147,7 @@
         android:layout_alignBottom="@+id/video"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/content"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -177,12 +160,10 @@
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/detail_desc"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             app:drawableStartCompat="@drawable/ic_detail_desc" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/keep"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/keep"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -195,12 +176,10 @@
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/keep"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             app:drawableStartCompat="@drawable/ic_detail_keep_off" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/change"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/change"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selector_item"
@@ -213,8 +192,7 @@
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/play_change"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            
             app:drawableStartCompat="@drawable/ic_detail_change" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

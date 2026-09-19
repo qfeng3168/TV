@@ -6,8 +6,7 @@
     android:orientation="horizontal"
     android:padding="24dp">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/pass"
+    <com.google.android.material.textfield.TextInputEditText style="@style/Kiwi.Text.Body" android:id="@+id/pass"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -17,11 +16,9 @@
         android:imeOptions="actionDone"
         android:inputType="textPassword"
         android:maxLength="20"
-        android:singleLine="true"
-        android:textSize="16sp" />
+        android:singleLine="true" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/positive"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/positive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_button"
@@ -30,7 +27,6 @@
         android:gravity="center"
         android:singleLine="true"
         android:text="@string/dialog_positive"
-        android:textColor="@color/white"
-        android:textSize="14sp" />
+         />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

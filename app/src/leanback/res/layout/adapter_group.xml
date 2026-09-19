@@ -8,8 +8,7 @@
     android:gravity="center"
     android:orientation="horizontal">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/name"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/selector_live"
@@ -17,7 +16,6 @@
         android:ellipsize="marquee"
         android:singleLine="true"
         android:textColor="@color/text"
-        android:textSize="16sp"
         tools:text="收藏" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

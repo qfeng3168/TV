@@ -22,22 +22,18 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/preloadText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/preloadText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="Off" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -52,22 +48,18 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_next"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/preloadNextText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/preloadNextText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="Off" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -82,22 +74,18 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_threads"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/preloadThreadText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/preloadThreadText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="1" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -112,22 +100,18 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_size"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/preloadSizeText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/preloadSizeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="512 MB" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -142,22 +126,18 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/player_preload_time"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/preloadTimeText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/preloadTimeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="60 s" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

@@ -13,12 +13,10 @@
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/empty" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/text"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/error_empty"
-        android:textColor="@color/white"
-        android:textSize="16sp" />
+         />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

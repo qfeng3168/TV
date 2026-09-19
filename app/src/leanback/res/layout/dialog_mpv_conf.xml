@@ -10,8 +10,7 @@
         android:layout_height="180dp"
         android:scaleType="centerCrop" />
 
-    <com.fongmi.android.tv.ui.custom.CustomEditText
-        android:id="@+id/text"
+    <com.fongmi.android.tv.ui.custom.CustomEditText style="@style/Kiwi.Text.BodyLarge" android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
@@ -23,8 +22,7 @@
         android:importantForAutofill="no"
         android:inputType="textMultiLine|textNoSuggestions"
         android:maxLines="5"
-        android:minLines="5"
-        android:textSize="18sp" />
+        android:minLines="5" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/bottom"
@@ -34,8 +32,7 @@
         android:layout_alignBottom="@+id/code"
         android:orientation="horizontal">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/positive"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/positive"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -46,11 +43,9 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_positive"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
+             />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/negative"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/negative"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -60,8 +55,7 @@
             android:gravity="center"
             android:singleLine="true"
             android:text="@string/dialog_negative"
-            android:textColor="@color/white"
-            android:textSize="14sp" />
+             />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>

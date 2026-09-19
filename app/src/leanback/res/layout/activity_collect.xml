@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/result"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Title" android:id="@+id/result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -15,8 +14,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="24sp"
+        
         tools:text="@string/collect_result" />
 
     <androidx.leanback.widget.HorizontalGridView

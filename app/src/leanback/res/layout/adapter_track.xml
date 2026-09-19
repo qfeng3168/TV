@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/text"
     android:layout_width="match_parent"
@@ -10,5 +10,4 @@
     android:focusableInTouchMode="true"
     android:singleLine="true"
     android:textColor="@color/text"
-    android:textSize="14sp"
     tools:text="中文、哥斯拉.srt" />

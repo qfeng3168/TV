@@ -37,4 +37,12 @@
         <item name="keep_content_on_player_reset">true</item>
     </style>
 
+    <!-- 播放进度条：已播放段品牌绿、缓冲段半透明绿、未播放段暗灰 -->
+    <style name="Player.Seek">
+        <item name="played_color">@color/brand_primary</item>
+        <item name="buffered_color">@color/brand_primary_dim</item>
+        <item name="unplayed_color">@color/black_40</item>
+        <item name="played_color">@color/brand_primary</item>
+    </style>
+
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 章节标题下方的品牌绿指示条，宽 32dp，高 3dp -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <size
+        android:width="32dp"
+        android:height="3dp" />
+    <solid android:color="@color/brand_primary" />
+    <corners android:radius="1.5dp" />
+</shape>

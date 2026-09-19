@@ -81,6 +81,10 @@
         <item name="android:textSize">20sp</item>
     </style>
 
+    <style name="Kiwi.Text.BodyLarge" parent="Kiwi.Text">
+        <item name="android:textSize">18sp</item>
+    </style>
+
     <style name="Kiwi.Text.Body" parent="Kiwi.Text">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/on_surface_medium</item>
@@ -89,6 +93,13 @@
     <style name="Kiwi.Text.Caption" parent="Kiwi.Text">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/on_surface_low</item>
+    </style>
+
+    <!-- 大字报级，用于设置页版本号、状态指示器、时间显示 -->
+    <style name="Kiwi.Text.Hero" parent="Kiwi.Text">
+        <item name="android:textSize">64sp</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textColor">@color/brand_primary</item>
     </style>
 
 </resources>

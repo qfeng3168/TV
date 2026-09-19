@@ -1,9 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/text"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:textColor="@color/white"
-    android:textSize="24sp"
-    tools:text="@string/home_recommend" />
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="4dp">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/text"
+        style="@style/Kiwi.Text.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/on_surface_high"
+        tools:text="@string/home_recommend" />
+
+    <View
+        android:layout_width="32dp"
+        android:layout_height="3dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/shape_section_accent" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

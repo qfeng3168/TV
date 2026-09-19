@@ -22,21 +22,17 @@
             android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/danmaku_load"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/danmakuLoadText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/danmakuLoadText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="關" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -53,23 +49,19 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/danmaku_api"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/danmakuApiText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/danmakuApiText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
                 android:gravity="end"
                 android:singleLine="true"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="https://" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -86,21 +78,17 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/danmaku_auto_load"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/danmakuAutoText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/danmakuAutoText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="關" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -117,21 +105,17 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:text="@string/danmaku_spider_first"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+                 />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/danmakuSpiderText"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/danmakuSpiderText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="@color/white"
-                android:textSize="18sp"
+                
                 tools:text="關" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>

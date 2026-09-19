@@ -31,8 +31,7 @@
                 android:nextFocusDown="@id/keyboard"
                 android:src="@drawable/ic_search_mic" />
 
-            <com.fongmi.android.tv.ui.custom.CustomSearchView
-                android:id="@+id/keyword"
+            <com.fongmi.android.tv.ui.custom.CustomSearchView style="@style/Kiwi.Text.Title" android:id="@+id/keyword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -46,10 +45,9 @@
                 android:maxLength="255"
                 android:nextFocusDown="@id/keyboard"
                 android:singleLine="true"
-                android:textColor="@color/white"
+                
                 android:textColorHint="@color/white"
-                android:textCursorDrawable="@drawable/shape_cursor"
-                android:textSize="24sp" />
+                android:textCursorDrawable="@drawable/shape_cursor" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -88,13 +86,11 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
+                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Title" android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="14dp"
                     android:text="@string/search_record"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                     />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recordRecycler"
@@ -109,14 +105,12 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/word"
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Title" android:id="@+id/word"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
                 android:text="@string/search_hot"
-                android:textColor="@color/white"
-                android:textSize="24sp" />
+                 />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/wordRecycler"
