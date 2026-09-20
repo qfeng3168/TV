@@ -361,10 +361,11 @@ public class Channel {
         if (!live.getCatchup().isEmpty() && getCatchup().isEmpty()) setCatchup(live.getCatchup());
         if (!live.getReferer().isEmpty() && getReferer().isEmpty()) setReferer(live.getReferer());
         if (live.getEpg().contains("{") && !getEpg().startsWith("http")) setEpg(live.getEpgApi().replace("{id}", getTvgId()).replace("{name}", getTvgName()).replace("{epg}", getEpg()));
-        // A live source without any Epg still gets the Epg configured on the
-        // settings page, so a plain m3u list can show programmes too.
+        // 设置页配的 Epg 已由 LiveApi.parse 挂到 live 上、走批量解析通道
+        // （只下一次并落盘）；这里只补批量通道不覆盖的形态，否则每个频道
+        // 都会重新下载同一份节目单，把任务超时风险放大 N 倍。
         String epg = LiveSetting.getEpg();
-        if (getEpg().isEmpty() && !epg.isEmpty() && !epg.contains("{")) setEpg(epg);
+        if (getEpg().isEmpty() && live.getEpgXml().isEmpty() && !epg.isEmpty() && !epg.contains("{")) setEpg(epg);
         if (live.getLogo().contains("{") && !getLogo().startsWith("http")) setLogo(live.getLogo().replace("{id}", getTvgId()).replace("{name}", getTvgName()).replace("{logo}", getLogo()));
     }
 

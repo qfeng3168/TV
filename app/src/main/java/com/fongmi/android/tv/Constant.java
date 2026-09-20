@@ -8,7 +8,7 @@ public class Constant {
     public static final long INTERVAL_HIDE = TimeUnit.SECONDS.toMillis(5);
     public static final long TIMEOUT_VOD = TimeUnit.SECONDS.toMillis(30);
     public static final long TIMEOUT_LIVE = TimeUnit.SECONDS.toMillis(30);
-    public static final long TIMEOUT_EPG = TimeUnit.SECONDS.toMillis(5);
+    public static final long TIMEOUT_EPG = TimeUnit.SECONDS.toMillis(30);
     public static final long TIMEOUT_XML = TimeUnit.SECONDS.toMillis(15);
     public static final long TIMEOUT_PLAY = TimeUnit.SECONDS.toMillis(15);
     public static final long TIMEOUT_SYNC = TimeUnit.SECONDS.toMillis(2);

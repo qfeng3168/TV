@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.api;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.R;
@@ -13,6 +15,7 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.player.extractor.Source;
+import com.fongmi.android.tv.setting.LiveSetting;
 import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.net.OkHttp;
 
@@ -21,12 +24,25 @@ import java.time.ZoneId;
 
 public class LiveApi {
 
+    private static final String TAG = LiveApi.class.getSimpleName();
+
     public static void parse(@NonNull Live item) throws Exception {
+        applyGlobalEpg(item);
         LiveParser.start(item.recent());
         item.getGroups().removeIf(Group::isEmpty);
         if (item.getGroups().isEmpty() || item.getGroups().get(0).isKeep()) return;
         item.getGroups().add(0, Group.create(R.string.keep));
         LiveConfig.get().applyKeepsToGroups(item.getGroups());
+    }
+
+    /** 没有 tvg-url 的纯 m3u 也挂上设置页配的 Epg，走 parseXml 的批量通道：
+        只下载一次并落盘缓存，而不是让每个频道各发一遍 HTTP。 */
+    private static void applyGlobalEpg(@NonNull Live item) {
+        if (!item.getEpg().isEmpty()) return;
+        String epg = LiveSetting.getEpg();
+        if (epg.isEmpty()) return;
+        item.setEpg(epg);
+        Log.i(TAG, "applyGlobalEpg url=" + epg);
     }
 
     public static boolean parseXml(@NonNull Live item) {
@@ -75,6 +91,13 @@ public class LiveApi {
         String date = LocalDate.now(zoneId).plusDays(offset).format(Formatters.DATE);
         String url = item.getEpg().replace("{date}", date);
         boolean need = url.startsWith("http") && item.getDataList().stream().noneMatch(epg -> epg.equal(date));
-        if (need) item.setData(Epg.objectFrom(OkHttp.string(url), item.getTvgId(), zoneId));
+        if (!need) return;
+        try {
+            item.setData(Epg.objectFrom(OkHttp.string(url), item.getTvgId(), zoneId));
+        } catch (Exception e) {
+            // 单天拉取失败不能拖垮另外两天：任务超时会 interrupt 掉当前连接，
+            // 抛上来会让整个节目单变成空。
+            Log.w(TAG, "fetchEpgDay failed date=" + date + " url=" + url + " error=" + e.getMessage());
+        }
     }
 }

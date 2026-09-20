@@ -18,6 +18,8 @@ import org.simpleframework.xml.core.Persister;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,9 +66,32 @@ public class EpgParser {
         String reason = refreshReason(file);
         boolean refresh = reason != null;
         Log.i(TAG, "start url=" + url + " file=" + file.getName() + " refresh=" + refresh + (refresh ? " reason=" + reason : ""));
-        if (refresh) Download.create(url, file).get();
+        File backup = new File(file.getParentFile(), file.getName() + ".bak");
+        boolean kept = false;
+        try {
+            if (refresh) {
+                // Download 失败会把目标文件清掉，先拷一份再下，失败就还原，
+                // 节目单缺一天远好过整片空白。
+                if (Path.exists(file) && file.length() > 0) {
+                    Files.copy(file.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    kept = true;
+                }
+                Download.create(url, file).get();
+            }
+        } catch (Exception e) {
+            if (!kept) throw e;
+            try {
+                Files.move(backup.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Log.w(TAG, "download failed, restored cache file=" + file.getName() + " error=" + e.getMessage());
+            } catch (IOException restoreError) {
+                Log.w(TAG, "restore failed file=" + file.getName() + " error=" + restoreError.getMessage());
+                throw e;
+            }
+        } finally {
+            if (Path.exists(backup)) Path.clear(backup);
+        }
         boolean gzip = isGzip(file);
-        if (gzip) readGzip(live, file, refresh);
+        if (gzip) readGzip(live, file, true);
         else readXml(live, file);
         Log.i(TAG, "start done elapsed=" + (System.currentTimeMillis() - t0) + "ms");
     }
