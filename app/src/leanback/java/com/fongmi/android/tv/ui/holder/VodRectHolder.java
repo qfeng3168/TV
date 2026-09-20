@@ -32,15 +32,18 @@ public class VodRectHolder extends BaseVodHolder {
     @Override
     public void initView(Vod item) {
         binding.name.setText(item.getName());
-        // 副标题与奇异果一致，放影片类型；没有类型时整行收起，避免留一条空行。
-        String sub = item.getTypeName();
+        // 副标题与奇异果一致，放影片类型；类型缺失时退化为年份，保证每张卡都是两行文字。
+        // 退化时把年份角标收起 —— 否则同一张卡上会出现两个年份。
+        String type = item.getTypeName();
+        String year = item.getYear();
+        String sub = TextUtils.isEmpty(type) ? year : type;
         binding.sub.setText(sub);
         binding.sub.setVisibility(TextUtils.isEmpty(sub) ? View.GONE : View.VISIBLE);
-        binding.year.setText(item.getYear());
+        binding.year.setText(year);
         binding.site.setText(item.getSiteName());
         binding.remark.setText(item.getRemarks());
         binding.site.setVisibility(item.getSiteVisible());
-        binding.year.setVisibility(item.getYearVisible());
+        binding.year.setVisibility(TextUtils.isEmpty(type) ? View.GONE : item.getYearVisible());
         binding.name.setVisibility(item.getNameVisible());
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));

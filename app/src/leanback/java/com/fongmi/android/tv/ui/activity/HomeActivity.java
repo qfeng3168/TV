@@ -165,8 +165,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setNav() {
         mBinding.nav.setAdapter(mNav = new HomeNavAdapter(this));
-        // 设计稿：分类项行距 20px @2x = 10dp
-        mBinding.nav.setVerticalSpacing(ResUtil.dp2px(10));
+        // 行距对齐奇异果实测：项高 30dp + 间距 8dp = 38dp 行距（奇异果实测 37.5dp）。
+        mBinding.nav.setVerticalSpacing(getResources().getDimensionPixelSize(R.dimen.kiwi_nav_gap));
         mNav.setItems(mTypes, getExtraItems());
     }
 
@@ -445,16 +445,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     /**
-     * 左侧导航占掉的横向空间，必须与 activity_vod.xml 里的实际留白一致，
-     * 否则海报会按整屏宽计算，导致每行放不下预设列数。
+     * 左侧导航比普通内容区多占的横向空间 = 导航栏宽 + 栏间距（114 + 24 = 138dp）。
+     *
+     * 注意这里【不含】kiwi_body_padding：内容区左右各 24dp 的外边距由
+     * Product.getSpec() 里的 48dp 常量统一承担，两边各算一次就会把左侧那 24dp
+     * 重复扣一遍，多出来的宽度全部堆到右边（实测右留白 49dp，而奇异果是 24dp），
+     * 海报也被挤小。
      */
     private int getNavOffset() {
-        // 内容区左边界 = 外边距 + 导航栏宽 + 栏间距（= 162dp），加上 getSpec 里已含的
-        // 左右 24dp 外边距，海报正好按内容区剩余宽度均分。
-        int px = getResources().getDimensionPixelSize(R.dimen.kiwi_body_padding)
-                + getResources().getDimensionPixelSize(R.dimen.kiwi_nav_width)
-                + getResources().getDimensionPixelSize(R.dimen.kiwi_body_gap);
-        return ResUtil.px2dp(px);
+        return ResUtil.px2dp(getResources().getDimensionPixelSize(R.dimen.kiwi_nav_width)
+                + getResources().getDimensionPixelSize(R.dimen.kiwi_body_gap));
     }
 
     @Override

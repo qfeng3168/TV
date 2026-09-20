@@ -21,9 +21,13 @@
       App 通过 leanback/AndroidManifest.xml 的 design_width_in_dp=960 把逻辑宽度锁成
       960dp，因此实际渲染密度为 2.0：dp = 截图像素 / 2。下列数值即按此换算。
         顶栏        ~110px -> 55dp
-        导航栏宽     228px -> 114dp     导航项高 60px -> 30dp
-        导航项间距   15px ->   8dp       导航字号 ~40px -> 20sp
+        导航栏宽     228px -> 114dp     导航项高 60px -> 30dp（选中药丸实测 228x60px）
+        导航项间距   15px ->   8dp
         内容左边距   324px -> 162dp（24 外边距 + 114 导航 + 24 间距）
+
+      导航字号按「字进距」而不是「墨迹高度」反推：奇异果 2 字标签宽 57px、3 字标签
+      85px，即 14.2dp/字（≈15sp）。先前把 40px 墨迹高当成字号 20sp 是错的 —— 20sp
+      会把「热播剧集」这类 4 字分类名挤成「热播…」。故取 16sp + 18dp 内边距。
     -->
 
     <!-- 顶部条 -->
@@ -39,7 +43,7 @@
     <!-- 左侧分类导航 -->
     <dimen name="kiwi_nav_width">114dp</dimen>
     <dimen name="kiwi_nav_item_height">30dp</dimen>
-    <dimen name="kiwi_nav_item_padding">20dp</dimen>
+    <dimen name="kiwi_nav_item_padding">18dp</dimen>
     <dimen name="kiwi_nav_gap">8dp</dimen>
     <dimen name="kiwi_radius_nav">5dp</dimen>
     <dimen name="kiwi_nav_divider_height">1dp</dimen>

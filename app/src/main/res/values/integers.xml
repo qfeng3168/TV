@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 海报栅格的水平列距（dp）。24dp 对齐银河奇异果实测值。 -->
+    <integer name="kiwi_grid_gap_dp">24</integer>
+</resources>

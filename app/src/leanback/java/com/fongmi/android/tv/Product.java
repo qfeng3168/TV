@@ -32,7 +32,11 @@ public class Product {
 
     public static int[] getSpec(Style style) {
         int column = getColumn(style);
-        int space = ResUtil.dp2px(48 + navOffset) + ResUtil.dp2px(16 * (column - 1));
+        // 48dp = 内容区左右各 24dp 外边距；navOffset 只算导航栏宽 + 栏间距（不含外边距，
+        // 见 HomeActivity.getNavOffset()）。列距走资源，避免和布局里的实际间距各说各话
+        // ——写死 16dp 时列距只有 16dp，比奇异果实测的 24dp 挤，整屏看起来发闷。
+        int gap = App.get().getResources().getInteger(R.integer.kiwi_grid_gap_dp);
+        int space = ResUtil.dp2px(48 + navOffset) + ResUtil.dp2px(gap * (column - 1));
         if (style.isOval()) space += ResUtil.dp2px(column * 16);
         return getSpec(space, column, style);
     }
