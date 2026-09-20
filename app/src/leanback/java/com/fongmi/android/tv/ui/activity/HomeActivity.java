@@ -449,7 +449,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
      * 否则海报会按整屏宽计算，导致每行放不下预设列数。
      */
     private int getNavOffset() {
-        int px = getResources().getDimensionPixelSize(R.dimen.kiwi_nav_width) + getResources().getDimensionPixelSize(R.dimen.kiwi_body_gap);
+        // 内容区左边界 = 外边距 + 导航栏宽 + 栏间距（= 162dp），加上 getSpec 里已含的
+        // 左右 24dp 外边距，海报正好按内容区剩余宽度均分。
+        int px = getResources().getDimensionPixelSize(R.dimen.kiwi_body_padding)
+                + getResources().getDimensionPixelSize(R.dimen.kiwi_nav_width)
+                + getResources().getDimensionPixelSize(R.dimen.kiwi_body_gap);
         return ResUtil.px2dp(px);
     }
 

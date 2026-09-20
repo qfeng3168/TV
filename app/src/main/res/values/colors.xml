@@ -40,18 +40,28 @@
     <color name="on_brand">#FF0B0D10</color>
 
     <!-- 深色影院底：base 是最外层背景，card 是设置项与列表项，raised 是浮层与输入框 -->
-    <color name="surface_base">#FF0B0C10</color>
-    <color name="surface_card">#FF171A1F</color>
-    <color name="surface_raised">#FF21252C</color>
+    <color name="surface_base">#FF17191A</color>
+    <color name="surface_card">#FF202325</color>
+    <color name="surface_raised">#FF282B2D</color>
     <color name="surface_scrim">#CC000000</color>
-    <color name="surface_badge">#B321252C</color>
+    <color name="surface_badge">#B31F2224</color>
 
     <color name="outline_subtle">#1FFFFFFF</color>
 
     <!-- 文字灰阶取自设计稿的固定值，不用半透明白，避免叠在卡片上时发灰 -->
-    <color name="on_surface_high">#FFFFFFFF</color>
-    <color name="on_surface_medium">#FFB9BEC7</color>
-    <color name="on_surface_low">#FF7A808B</color>
-    <color name="on_surface_disabled">#FF4A4F57</color>
+    <color name="on_surface_high">#FFE6E8E8</color>
+    <color name="on_surface_medium">#FFA2A3A3</color>
+    <color name="on_surface_low">#FF6E7373</color>
+    <color name="on_surface_disabled">#FF4A4F50</color>
+
+    <!-- 以下为从银河奇异果 16.9.0 实机截图采样得到的真值（1920x1080 @2x）：
+         背景 #17191A、角标绿 #14A83C、选中胶囊渐变 #CCFFDD -> #F1F1FE、卡片标题 #D1D1D1。 -->
+    <color name="badge_green">#FF14A83C</color>
+    <color name="nav_pill_start">#FFCCFFDD</color>
+    <color name="nav_pill_end">#FFF1F1FE</color>
+    <color name="nav_activated_text">#FF1A1C1C</color>
+    <color name="card_title">#FFD1D1D1</color>
+    <color name="card_subtitle">#FFA2A3A3</color>
+    <color name="nav_divider">#26FFFFFF</color>
 
 </resources>

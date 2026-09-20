@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 评分角标：改为奇异果的角标绿，四角同半径，贴在海报右上角 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="@color/bg_remark" />
+    <solid android:color="@color/badge_green" />
+
+    <corners android:radius="@dimen/kiwi_radius_tag" />
 
     <padding
-        android:bottom="4dp"
-        android:left="4dp"
-        android:right="4dp"
-        android:top="4dp" />
-
-    <corners
-        android:bottomRightRadius="4dp"
-        android:topRightRadius="4dp" />
+        android:bottom="3dp"
+        android:left="8dp"
+        android:right="8dp"
+        android:top="3dp" />
 
 </shape>

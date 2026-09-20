@@ -1,62 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  海报卡片，信息层级对齐奇异果：图 -> 主标题 -> 类型副标题，两行文字左对齐。
+  角标（评分）从原先压在图上左下角、改成右上角贴边，与奇异果的「免费 / VIP / 限免中」同位置。
+  imageWrap 用 wrap_content 承接 Holder 写入的图高，image 本身撑满它。
+-->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:foreground="@drawable/selector_vod">
+    android:foreground="@drawable/selector_vod"
+    android:orientation="vertical">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image"
+    <FrameLayout
+        android:id="@+id/imageWrap"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/black_20"
-        app:shapeAppearanceOverlay="@style/Vod.Grid" />
-
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/year"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_vod_year"
-        android:singleLine="true"
-        
-        android:visibility="gone"
-        tools:text="2022"
-        tools:visibility="visible" />
+        android:background="@color/black_20">
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/site"
-        android:layout_width="wrap_content"
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/Vod.Grid" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/year"
+            style="@style/Kiwi.Text.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"
+            android:layout_margin="@dimen/kiwi_space_sm"
+            android:background="@drawable/shape_vod_year"
+            android:singleLine="true"
+            android:visibility="gone"
+            tools:text="2022"
+            tools:visibility="visible" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/site"
+            style="@style/Kiwi.Text.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|bottom"
+            android:layout_margin="@dimen/kiwi_space_sm"
+            android:background="@drawable/shape_vod_site"
+            android:singleLine="true"
+            android:visibility="gone"
+            tools:text="泥巴"
+            tools:visibility="visible" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/remark"
+            style="@style/Kiwi.Text.Tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_margin="@dimen/kiwi_space_sm"
+            android:background="@drawable/shape_vod_remark"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_high"
+            tools:text="评分 7.1" />
+
+    </FrameLayout>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/name"
+        style="@style/Kiwi.Text.CardTitle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_vod_site"
+        android:layout_marginTop="@dimen/kiwi_card_gap"
+        android:ellipsize="end"
         android:singleLine="true"
-        
-        android:visibility="gone"
-        tools:text="泥巴"
-        tools:visibility="visible" />
+        tools:text="河神" />
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/remark"
-        android:layout_width="wrap_content"
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/sub"
+        style="@style/Kiwi.Text.CardSub"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="@drawable/shape_vod_remark"
-        android:ellipsize="marquee"
+        android:layout_marginTop="@dimen/kiwi_text_gap"
+        android:ellipsize="end"
         android:singleLine="true"
-        
-        tools:text="1080p" />
+        tools:text="剧" />
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/image"
-        android:layout_alignStart="@+id/image"
-        android:layout_alignEnd="@+id/image"
-        android:background="@drawable/shape_vod_name"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
-        android:singleLine="true"
-        
-        tools:text="蜘蛛人" />
-
-</RelativeLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

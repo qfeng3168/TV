@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 只聚焦、未选中：抬起一层的底色 + 白色描边，遥控器有明确落点 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-
     <solid android:color="@color/surface_raised" />
-
+    <corners android:radius="@dimen/kiwi_radius_nav" />
     <stroke
         android:width="@dimen/kiwi_focus_stroke"
         android:color="@color/on_surface_high" />
-
-    <corners android:radius="@dimen/kiwi_radius_nav" />
-
 </shape>

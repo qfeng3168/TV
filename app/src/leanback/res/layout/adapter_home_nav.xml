@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 分类导航项：设计稿 64px @2x = 32dp 高、左右留白 20px @2x = 10dp -->
+<!-- 分类导航项：对齐奇异果实测——项高 30dp、内容左内边距 20dp、字号 20sp。
+     项宽由容器固定为 kiwi_nav_width，文字左对齐，宽度不随内容变化。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -18,8 +19,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
+        android:shadowColor="@color/black_70"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
         android:singleLine="true"
-        android:textColor="@color/home_nav_text"
         tools:text="电影" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

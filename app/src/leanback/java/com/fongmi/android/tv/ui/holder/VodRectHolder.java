@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.ui.holder;
 
+import android.text.TextUtils;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
@@ -29,6 +32,10 @@ public class VodRectHolder extends BaseVodHolder {
     @Override
     public void initView(Vod item) {
         binding.name.setText(item.getName());
+        // 副标题与奇异果一致，放影片类型；没有类型时整行收起，避免留一条空行。
+        String sub = item.getTypeName();
+        binding.sub.setText(sub);
+        binding.sub.setVisibility(TextUtils.isEmpty(sub) ? View.GONE : View.VISIBLE);
         binding.year.setText(item.getYear());
         binding.site.setText(item.getSiteName());
         binding.remark.setText(item.getRemarks());

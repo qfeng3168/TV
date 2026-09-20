@@ -76,8 +76,8 @@ public class PlayerSetting {
     }
 
     public static int getSize() {
-        // 默认 1 对应 6 列海报，与设计稿首页一屏 6 张的排布一致
-        return Math.clamp(Prefers.getInt("size", 1), MIN_SIZE, MAX_SIZE);
+        // 默认 2 对应 5 列海报：与奇异果首页的卡片体量接近，6 列时缩略图过小、页面显得拥挤
+        return Math.clamp(Prefers.getInt("size", 2), MIN_SIZE, MAX_SIZE);
     }
 
     public static void putSize(int size) {

@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 选中且聚焦：保留深色选中底，加白描边，让「当前分类」和「焦点位置」同时可读 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-
-    <solid android:color="@color/surface_card" />
-
+    <corners android:radius="@dimen/kiwi_radius_nav" />
+    <gradient
+        android:angle="0"
+        android:endColor="@color/nav_pill_end"
+        android:startColor="@color/nav_pill_start"
+        android:type="linear" />
     <stroke
         android:width="@dimen/kiwi_focus_stroke"
         android:color="@color/on_surface_high" />
-
-    <corners android:radius="@dimen/kiwi_radius_nav" />
-
 </shape>

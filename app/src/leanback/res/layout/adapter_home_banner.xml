@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  首页大图 Banner：设计稿「首页Banner」= 260px @2x = 130dp 高、圆角 16px = 8dp、
-  内留白 48px = 24dp，信息层（标签 / 标题 / 副标题）纵向排布、间距 16px = 8dp，
-  整体贴左上角。
+  首页大图 Banner：高度取奇异果实测 298px @2x = 149dp。
+  信息层压在图片下缘（标签 / 标题 / 副标题），配自下而上的压暗蒙版保证可读。
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -29,7 +28,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
+        android:layout_gravity="bottom|start"
         android:orientation="vertical"
         android:padding="@dimen/kiwi_banner_padding">
 

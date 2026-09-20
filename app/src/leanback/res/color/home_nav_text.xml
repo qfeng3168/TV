@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 分类导航文字：选中=品牌绿（设计稿用绿字标记当前分类），聚焦=白，其余=低位灰 -->
+<!-- 选中项压在浅色胶囊上，文字必须转为深色；未选中为次级灰。 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item android:color="@color/brand_primary" android:state_activated="true" />
+    <item android:color="@color/nav_activated_text" android:state_activated="true" />
     <item android:color="@color/on_surface_high" android:state_focused="true" />
-    <item android:color="@color/on_surface_low" />
-
+    <item android:color="@color/card_subtitle" />
 </selector>

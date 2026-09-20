@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 分组分隔线：不可聚焦，避免方向键停在它上面 -->
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/kiwi_nav_divider_height"
+    android:background="@drawable/shape_home_nav_divider"
+    android:focusable="false" />

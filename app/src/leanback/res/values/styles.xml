@@ -101,9 +101,23 @@
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <!-- 分类导航项：设计稿 28px @2x = 14sp -->
+    <!-- 分类导航项：奇异果实测行高 60px、字高约 40px -> 20sp -->
     <style name="Kiwi.Text.Nav" parent="Kiwi.Text">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/home_nav_text</item>
+    </style>
+
+    <!-- 卡片主标题：奇异果 #D1D1D1、约 36px -> 18sp -->
+    <style name="Kiwi.Text.CardTitle" parent="Kiwi.Text">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/card_title</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- 卡片副标题：奇异果次级文字 #A2A3A3、约 28px -> 14sp -->
+    <style name="Kiwi.Text.CardSub" parent="Kiwi.Text">
         <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/card_subtitle</item>
     </style>
 
     <!-- 内容行标题：设计稿 36px @2x = 18sp -->
@@ -114,7 +128,7 @@
 
     <!-- Banner 主标题：设计稿 56px @2x = 28sp -->
     <style name="Kiwi.Text.BannerTitle" parent="Kiwi.Text">
-        <item name="android:textSize">28sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textColor">@color/on_surface_high</item>
     </style>

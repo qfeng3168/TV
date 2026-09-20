@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 信息层在左上角（对齐设计稿 01），所以蒙版改成自上而下压暗，保证标题在实拍图上可读 -->
+<!-- 信息层在图片下缘，所以蒙版从下往上压暗 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
     <gradient
         android:angle="90"
-        android:endColor="#00000000"
-        android:startColor="#E6000000" />
+        android:endColor="#E6000000"
+        android:startColor="#00000000" />
 
 </shape>

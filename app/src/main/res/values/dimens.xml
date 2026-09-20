@@ -17,34 +17,44 @@
     <dimen name="kiwi_focus_stroke">2dp</dimen>
 
     <!--
-      以下为「主页 / 点播页」按设计稿标注换算的尺寸。
-      设计稿画布 1920x1080、标注为 2x（等价 Android TV 的 960x540dp，
-      见 leanback/AndroidManifest.xml 的 design_width_in_dp），故 dp = 标注值 / 2。
+      主页尺寸取自银河奇异果 16.9.0 实机截图（1920x1080，density 320）。
+      App 通过 leanback/AndroidManifest.xml 的 design_width_in_dp=960 把逻辑宽度锁成
+      960dp，因此实际渲染密度为 2.0：dp = 截图像素 / 2。下列数值即按此换算。
+        顶栏        ~110px -> 55dp
+        导航栏宽     228px -> 114dp     导航项高 60px -> 30dp
+        导航项间距   15px ->   8dp       导航字号 ~40px -> 20sp
+        内容左边距   324px -> 162dp（24 外边距 + 114 导航 + 24 间距）
     -->
 
-    <!-- 顶部品牌条 -->
-    <dimen name="kiwi_topbar_height">80dp</dimen>
-    <dimen name="kiwi_topbar_padding">24dp</dimen>
-    <dimen name="kiwi_logo_size">32dp</dimen>
+    <!-- 顶部条 -->
+    <dimen name="kiwi_topbar_height">55dp</dimen>
+    <dimen name="kiwi_topbar_padding">20dp</dimen>
+    <dimen name="kiwi_logo_size">26dp</dimen>
     <dimen name="kiwi_icon_box">36dp</dimen>
 
-    <!-- 主体：两侧留白 24dp，左右两栏间距 20dp -->
+    <!-- 外边距：左栏左留白 24dp、两栏间距 24dp、右留白 24dp -->
     <dimen name="kiwi_body_padding">24dp</dimen>
-    <dimen name="kiwi_body_gap">20dp</dimen>
+    <dimen name="kiwi_body_gap">24dp</dimen>
 
-    <!-- 左侧分类导航：栏宽 100dp、行高 32dp、行内留白 10dp、圆角 5dp -->
-    <dimen name="kiwi_nav_width">100dp</dimen>
-    <dimen name="kiwi_nav_item_height">32dp</dimen>
-    <dimen name="kiwi_nav_item_padding">10dp</dimen>
+    <!-- 左侧分类导航 -->
+    <dimen name="kiwi_nav_width">114dp</dimen>
+    <dimen name="kiwi_nav_item_height">30dp</dimen>
+    <dimen name="kiwi_nav_item_padding">20dp</dimen>
+    <dimen name="kiwi_nav_gap">8dp</dimen>
     <dimen name="kiwi_radius_nav">5dp</dimen>
+    <dimen name="kiwi_nav_divider_height">1dp</dimen>
 
     <!-- 内容区 -->
     <dimen name="kiwi_content_gap">12dp</dimen>
 
-    <!-- 首页大图 Banner：高 130dp、圆角 8dp、内留白 24dp -->
-    <dimen name="kiwi_banner_height">130dp</dimen>
+    <!-- 卡片文字：图 -> 标题 8dp，标题 -> 副标题 2dp -->
+    <dimen name="kiwi_card_gap">8dp</dimen>
+    <dimen name="kiwi_text_gap">2dp</dimen>
+
+    <!-- 首页大图 Banner：奇异果 732x298px -> 366x149dp -->
+    <dimen name="kiwi_banner_height">149dp</dimen>
     <dimen name="kiwi_banner_padding">24dp</dimen>
-    <dimen name="kiwi_radius_banner">8dp</dimen>
+    <dimen name="kiwi_radius_banner">4dp</dimen>
     <dimen name="kiwi_radius_tag">4dp</dimen>
 
 </resources>
