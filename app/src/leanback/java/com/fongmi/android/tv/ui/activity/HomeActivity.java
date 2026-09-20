@@ -6,20 +6,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.ListRow;
-import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
@@ -29,6 +23,7 @@ import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Func;
+import com.fongmi.android.tv.bean.HomeBanner;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Style;
@@ -45,13 +40,13 @@ import com.fongmi.android.tv.player.extractor.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.DLNARendererService;
 import com.fongmi.android.tv.service.PlaybackService;
-import com.fongmi.android.tv.ui.adapter.BaseDiffCallback;
+import com.fongmi.android.tv.ui.adapter.HomeFuncNavAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
-import com.fongmi.android.tv.ui.presenter.FuncPresenter;
+import com.fongmi.android.tv.ui.presenter.BannerPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
@@ -75,12 +70,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener {
+public class HomeActivity extends BaseActivity
+        implements CustomTitleView.Listener,
+        VodPresenter.OnClickListener,
+        HomeFuncNavAdapter.OnClickListener {
 
     private ActivityHomeBinding mBinding;
-    private ArrayObjectAdapter mFuncAdapter;
     private ArrayObjectAdapter mAdapter;
     private SiteViewModel mViewModel;
+    private HomeFuncNavAdapter mFuncNav;
     private Result mResult;
     private Clock mClock;
 
@@ -118,6 +116,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         DLNARendererService.start(this);
         Updater.create().start(this);
         setRecyclerView();
+        setNav();
         setViewModel();
         setAdapter();
         initConfig();
@@ -128,12 +127,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
-            @Override
-            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
-            }
-        });
     }
 
     private void checkAction(Intent intent) {
@@ -160,11 +153,17 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Integer.class, new HeaderPresenter());
         selector.addPresenter(String.class, new ProgressPresenter());
+        selector.addPresenter(HomeBanner.class, new BannerPresenter(this));
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+    }
+
+    private void setNav() {
+        mFuncNav = new HomeFuncNavAdapter(this);
+        mBinding.nav.setAdapter(mFuncNav);
+        setFunc();
     }
 
     private void setViewModel() {
@@ -177,7 +176,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setAdapter() {
-        mAdapter.add(new ListRow(mFuncAdapter = new ArrayObjectAdapter(new FuncPresenter(this))));
+        mAdapter.add(HomeBanner.EMPTY);
         mAdapter.add(R.string.home_recommend);
     }
 
@@ -225,9 +224,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setFocus() {
-        mBinding.title.setSelected(true);
-        App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
+        mBinding.nav.requestFocus();
     }
 
     private void getVideo() {
@@ -242,8 +239,25 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void addVideo(Result result) {
         Style style = result.getStyle(getHome().getStyle());
-        if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
-        else addGrid(result.getList(), style);
+        Vod pick = pickBanner(result);
+        if (pick != null) {
+            int idx = mAdapter.indexOf(HomeBanner.EMPTY);
+            if (idx >= 0) mAdapter.set(idx, HomeBanner.create(pick));
+        }
+        List<Vod> items = new ArrayList<>(result.getList());
+        if (pick != null) items.removeIf(v -> pick.equals(v));
+        if (style.isList()) mAdapter.addAll(mAdapter.size(), items);
+        else addGrid(items, style);
+    }
+
+    private Vod pickBanner(Result result) {
+        if (result == null) return null;
+        List<Vod> items = result.getList();
+        if (items == null || items.isEmpty()) return null;
+        for (Vod vod : items) {
+            if (vod != null && !vod.isFolder() && !vod.isAction()) return vod;
+        }
+        return null;
     }
 
     private void addGrid(List<Vod> items, Style style) {
@@ -265,7 +279,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         items.add(Func.create(R.string.home_keep));
         items.add(Func.create(R.string.home_push));
         items.add(Func.create(R.string.home_setting));
-        mFuncAdapter.setItems(items, new BaseDiffCallback<Func>());
+        mFuncNav.setItems(items);
     }
 
     private void setLogo() {
@@ -378,7 +392,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) showDialog();
-        if (KeyUtil.isActionDown(event) & KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) return mBinding.recycler.getChildAt(0).requestFocus();
         return super.dispatchKeyEvent(event);
     }
 
