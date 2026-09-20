@@ -15,18 +15,16 @@ import com.github.catvod.utils.Path;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import dalvik.system.DexClassLoader;
 
@@ -63,13 +61,13 @@ public class JarLoader {
     private void load(String key, File file) {
         if (Thread.interrupted()) return;
         if (!Path.exists(file) || !file.setReadOnly()) return;
-        if (isInitUnsafe(file)) {
-            Log.w(TAG, "jar '" + key + "' skipped: dex contains System.exit / Runtime.exit / Process.killProcess call sites");
-            return;
-        }
         String cachePath = Path.jar().getAbsolutePath();
         DexClassLoader loader = new DexClassLoader(file.getAbsolutePath(), cachePath, cachePath, App.get().getClassLoader());
-        invokeInit(loader);
+        if (isInitUnsafe(file)) {
+            Log.w(TAG, "init skipped for '" + key + "': dex contains System.exit / Runtime.exit / Process.killProcess");
+        } else {
+            invokeInit(loader);
+        }
         invokeProxy(key, loader);
         loaders.put(key, loader);
     }
@@ -85,36 +83,25 @@ public class JarLoader {
     }
 
     /**
-     * 预扫描 jar 内所有 classes*.dex 字节，判断其是否可能调用 System.exit /
-     * Runtime.exit / Process.killProcess 从而杀掉本进程。命中则整个跳过该 jar，
-     * 避免第三方 jar（例如为 Termux/Linux 环境设计的 XC 源 spider）因本地代理、
-     * 外部二进制等自身环境未就绪时直接终止宿主进程。
-     *
-     * 命中不代表 spider 不能用 —— 只是这个 jar 在 FongMi 环境下不能安全加载；
-     * getSpider 会返回 SpiderNull，用户能看到提示但功能不可用，App 不 crash。
-     *
-     * 关键点：jar 是 zip 压缩的，dex 里的字符串在压缩流中搜不到，必须用 ZipFile
-     * 逐个读取 classes*.dex 后再做字节子串搜索。dex 的 string data 用 MUTF-8 存
-     * 储纯 ASCII 内容，所以按 US_ASCII 搜字节可靠。
+     * 预扫描 jar 字节，判断其 init() 是否可能调用 System.exit / Runtime.exit /
+     * Process.killProcess 从而杀掉本进程。命中则跳过 init，避免第三方 jar
+     * 因本地代理/权限等自身环境未就绪时直接终止宿主进程。
+     * 命中不代表 spider 不能用 —— 只跳过 init，Proxy 与 spider 类仍正常加载。
+     * 说明：dex 的 string data 用 MUTF-8 存储纯 ASCII 内容，所以直接按
+     * US_ASCII 做字节子串搜索是可靠的。
      */
     private boolean isInitUnsafe(File file) {
-        try (ZipFile zip = new ZipFile(file)) {
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry e = entries.nextElement();
-                if (!e.getName().endsWith(".dex")) continue;
-                try (InputStream is = zip.getInputStream(e)) {
-                    String content = new String(is.readAllBytes(), StandardCharsets.US_ASCII);
-                    if (!content.contains("exit")) continue;
-                    if (content.contains("Ljava/lang/System;")) return true;
-                    if (content.contains("Ljava/lang/Runtime;")) return true;
-                    if (content.contains("android/os/Process") && content.contains("killProcess")) return true;
-                }
-            }
+        try (InputStream is = new FileInputStream(file)) {
+            byte[] bytes = is.readAllBytes();
+            String content = new String(bytes, StandardCharsets.US_ASCII);
+            boolean hasExit = content.contains("exit");
+            boolean hasSystemExit = content.contains("Ljava/lang/System;") && hasExit;
+            boolean hasRuntimeExit = content.contains("Ljava/lang/Runtime;") && hasExit;
+            boolean hasKillProcess = content.contains("android/os/Process") && content.contains("killProcess");
+            return hasSystemExit || hasRuntimeExit || hasKillProcess;
         } catch (IOException e) {
-            // 读取失败视为安全，交给后续 DexClassLoader 处理
+            return false;
         }
-        return false;
     }
 
     private void invokeProxy(String key, DexClassLoader loader) {
