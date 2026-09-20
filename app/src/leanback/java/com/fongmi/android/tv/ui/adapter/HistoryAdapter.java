@@ -74,7 +74,7 @@ public class HistoryAdapter extends BaseDiffAdapter<History, HistoryAdapter.View
         holder.binding.name.setText(item.getVodName());
         holder.binding.remark.setVisibility(delete || same ? View.GONE : View.VISIBLE);
         holder.binding.remark.setText(item.getVodRemarks());
-        holder.binding.site.setVisibility(item.getSiteVisible() ? View.VISIBLE : View.GONE);
+        holder.binding.site.setVisibility(item.getSiteVisible());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.delete.setVisibility(delete ? View.VISIBLE : View.GONE);
         ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
