@@ -197,6 +197,21 @@
             android:visibility="gone"
             tools:text="來源 1" />
 
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/epg"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/selector_chip_round"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:singleLine="true"
+            android:text="@string/live_epg"
+            android:textColor="@color/on_surface_high"
+            android:visibility="gone" />
+
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/shift"
             android:layout_width="wrap_content"
             android:layout_height="40dp"

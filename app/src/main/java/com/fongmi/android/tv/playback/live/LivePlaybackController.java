@@ -58,6 +58,10 @@ public class LivePlaybackController {
     public boolean selectEpg(EpgData data, long startPositionMs) {
         Channel channel = state.getChannel();
         if (channel == null || data == null) return false;
+        // A channel that only declares shift-source (no catchup, not RTSP)
+        // has no catchup URL to build, so an EPG click here goes through the
+        // shift path instead of silently failing.
+        if (channel.hasShift() && !channel.hasCatchup() && !channel.isRtsp()) return selectShift(data, startPositionMs);
         if (data.isSelected()) return requestCatchup(data, startPositionMs);
         if (!channel.hasCatchup() && !channel.isRtsp()) return false;
         host.showCatchupReady(data);

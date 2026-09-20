@@ -191,6 +191,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.control.action.player.setOnClickListener(view -> onPlayer());
         mBinding.control.action.decode.setOnClickListener(view -> onDecode());
         mBinding.widget.shift.setOnClickListener(view -> onShift());
+        mBinding.widget.epg.setOnClickListener(view -> onEpg());
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
         mBinding.group.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
@@ -690,6 +691,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mCurrentEpg = null;
         mBinding.widget.play.setText("");
         mBinding.widget.shift.setVisibility(View.GONE);
+        mBinding.widget.epg.setVisibility(View.GONE);
         mBinding.widget.name.setMaxEms(48);
         mChannel.loadLogo(mBinding.widget.logo);
         mBinding.widget.line.setText(mChannel.getLine());
@@ -708,6 +710,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mEpgDataAdapter.addAll(epg.filter());
         mBinding.widget.name.setMaxEms(hasTitle ? 12 : 48);
         mBinding.widget.play.setText(data.format());
+        mBinding.widget.epg.setVisibility(epg.filter().isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.widget.shift.setVisibility(mChannel.hasShift() && Setting.isEpgCatchup() ? View.VISIBLE : View.GONE);
         mLive.onEpgChanged(data);
         setWidth(epg);
@@ -835,6 +838,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void onShift() {
         if (mCurrentEpg == null || mChannel == null || !mChannel.hasShift() || !Setting.isEpgCatchup()) return;
         mLive.selectShift(mCurrentEpg, player().getPosition());
+    }
+
+    private void onEpg() {
+        if (mChannel == null) return;
+        showEpg(mChannel);
     }
 
     private void resetAdapter() {
