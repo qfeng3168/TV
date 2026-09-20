@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  左右留白由外层 activity_vod.xml 的主体统一提供（设计稿：主体内留白 48px @2x = 24dp），
+  本文件不再重复加 24dp，否则会变成 48dp 双重留白。
+-->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -11,16 +15,14 @@
         android:id="@+id/bannerWrap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="@dimen/kiwi_content_gap"
         android:visibility="gone">
 
         <include
             android:id="@+id/banner"
             layout="@layout/adapter_home_banner"
             android:layout_width="match_parent"
-            android:layout_height="240dp" />
+            android:layout_height="@dimen/kiwi_banner_height" />
 
     </FrameLayout>
 
@@ -41,10 +43,7 @@
                 android:layout_height="match_parent"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:paddingStart="24dp"
-                android:paddingTop="16dp"
-                android:paddingEnd="24dp"
-                android:paddingBottom="24dp"
+                android:paddingBottom="@dimen/kiwi_space_lg"
                 app:focusOutEnd="true"
                 app:focusOutFront="true" />
 

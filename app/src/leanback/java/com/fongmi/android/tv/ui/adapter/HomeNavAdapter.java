@@ -6,7 +6,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.databinding.AdapterHomeNavBinding;
 
@@ -14,25 +13,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 首页左侧导航：站点分类 + 一个固定的收藏/历史入口。
- * 分类项负责切页，固定入口跳 KeepActivity——每一项都有真实去处，不做装饰。
+ * 主页左侧分类导航：站点分类 + 若干固定入口（直播 / 设置 / 收藏）。
+ * 分类项负责切换右侧分页，固定入口跳出到对应页面——每一项都有真实去处，不做装饰。
+ * 固定入口不参与「当前分类」的选中态，所以 activated 只打在分类项上。
  */
 public class HomeNavAdapter extends RecyclerView.Adapter<HomeNavAdapter.ViewHolder> {
 
-    private static final int SHORTCUT_COUNT = 1;
-
     private final OnClickListener mListener;
-    private final List<Class> mItems;
+    private final List<Class> mTypes = new ArrayList<>();
+    private final List<Integer> mExtras = new ArrayList<>();
     private int mSelected;
 
     public HomeNavAdapter(OnClickListener listener) {
         mListener = listener;
-        mItems = new ArrayList<>();
     }
 
-    public void addAll(List<Class> items) {
-        mItems.clear();
-        mItems.addAll(items);
+    public void setItems(List<Class> types, List<Integer> extras) {
+        mTypes.clear();
+        mTypes.addAll(types);
+        mExtras.clear();
+        mExtras.addAll(extras);
         notifyDataSetChanged();
     }
 
@@ -48,13 +48,9 @@ public class HomeNavAdapter extends RecyclerView.Adapter<HomeNavAdapter.ViewHold
         notifyItemChanged(position);
     }
 
-    private boolean isShortcut(int position) {
-        return position >= mItems.size();
-    }
-
     @Override
     public int getItemCount() {
-        return mItems.size() + SHORTCUT_COUNT;
+        return mTypes.size() + mExtras.size();
     }
 
     @NonNull
@@ -65,22 +61,23 @@ public class HomeNavAdapter extends RecyclerView.Adapter<HomeNavAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (isShortcut(position)) {
-            holder.binding.text.setText(R.string.home_keep);
-            holder.binding.getRoot().setActivated(false);
-            holder.binding.getRoot().setOnClickListener(v -> mListener.onShortcut());
+        holder.binding.getRoot().setActivated(position < mTypes.size() && position == mSelected);
+        if (position < mTypes.size()) {
+            Class item = mTypes.get(position);
+            holder.binding.text.setText(item.getTypeName());
+            holder.binding.getRoot().setOnClickListener(v -> mListener.onNavClick(position));
             return;
         }
-        holder.binding.text.setText(mItems.get(position).getTypeName());
-        holder.binding.getRoot().setActivated(position == mSelected);
-        holder.binding.getRoot().setOnClickListener(v -> mListener.onNavClick(position));
+        int resId = mExtras.get(position - mTypes.size());
+        holder.binding.text.setText(resId);
+        holder.binding.getRoot().setOnClickListener(v -> mListener.onExtra(resId));
     }
 
     public interface OnClickListener {
 
         void onNavClick(int position);
 
-        void onShortcut();
+        void onExtra(int resId);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

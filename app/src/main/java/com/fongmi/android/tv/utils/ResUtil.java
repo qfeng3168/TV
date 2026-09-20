@@ -94,6 +94,10 @@ public class ResUtil {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getDisplayMetrics());
     }
 
+    public static int px2dp(int px) {
+        return Math.round(px / getDisplayMetrics().density);
+    }
+
     public static String getString(@StringRes int resId) {
         return App.get().getResources().getString(resId);
     }

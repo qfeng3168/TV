@@ -1,19 +1,25 @@
 package com.fongmi.android.tv.ui.activity;
 
-import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.splashscreen.SplashScreen;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
-import androidx.leanback.widget.ListRow;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
+import androidx.viewpager.widget.ViewPager;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
@@ -21,14 +27,11 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Cache;
+import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Config;
-import com.fongmi.android.tv.bean.Func;
-import com.fongmi.android.tv.bean.HomeBanner;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.bean.Style;
-import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.databinding.ActivityHomeBinding;
+import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.db.BackupManager;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.ConfigEvent;
@@ -40,16 +43,11 @@ import com.fongmi.android.tv.player.extractor.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.DLNARendererService;
 import com.fongmi.android.tv.service.PlaybackService;
-import com.fongmi.android.tv.ui.adapter.HomeFuncNavAdapter;
+import com.fongmi.android.tv.ui.adapter.HomeNavAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
-import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
-import com.fongmi.android.tv.ui.presenter.BannerPresenter;
-import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
-import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
-import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.ui.fragment.FolderFragment;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -60,7 +58,6 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
-import com.google.common.collect.Lists;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -70,17 +67,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class HomeActivity extends BaseActivity
-        implements CustomTitleView.Listener,
-        VodPresenter.OnClickListener,
-        HomeFuncNavAdapter.OnClickListener {
+/**
+ * 主页 = 点播页（对齐设计稿 01）：
+ * 顶部品牌条 + 左侧分类导航 + 右侧内容分页。导航里除了站点分类，还固定挂
+ * 「直播 / 设置 / 收藏」三个入口，不再单独做一层功能宫格页。
+ * 焦点落到分类项上即切页（100ms 去抖）；对已选中项按 OK 展开/收起该分类的筛选。
+ * VodActivity 继承本类，只把内容来源换成 intent 里带的文件夹结果。
+ */
+public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, HomeNavAdapter.OnClickListener {
 
-    private ActivityHomeBinding mBinding;
-    private ArrayObjectAdapter mAdapter;
+    private ActivityVodBinding mBinding;
+    private HomeNavAdapter mNav;
     private SiteViewModel mViewModel;
-    private HomeFuncNavAdapter mFuncNav;
-    private Result mResult;
+    private List<Class> mTypes = new ArrayList<>();
     private Clock mClock;
+    private int mPending = -1;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -90,9 +91,17 @@ public class HomeActivity extends BaseActivity
         return VodConfig.get().getConfig();
     }
 
+    /**
+     * 是否为 App 入口页。入口页才做启动期初始化与退出清理；
+     * 作为文件夹浏览页复用时（VodActivity）不能重复做，否则会把底下主页的配置清掉。
+     */
+    protected boolean isEntry() {
+        return true;
+    }
+
     @Override
     protected ViewBinding getBinding() {
-        return mBinding = ActivityHomeBinding.inflate(getLayoutInflater());
+        return mBinding = ActivityVodBinding.inflate(getLayoutInflater());
     }
 
     @Override
@@ -103,22 +112,22 @@ public class HomeActivity extends BaseActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen.installSplashScreen(this);
+        if (isEntry()) SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
     }
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mResult = Result.empty();
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
-        PermissionUtil.requestNotify(this);
-        DLNARendererService.start(this);
-        Updater.create().start(this);
-        setRecyclerView();
+        if (isEntry()) {
+            PermissionUtil.requestNotify(this);
+            DLNARendererService.start(this);
+            Updater.create().start(this);
+        }
         setNav();
+        setPager();
         setViewModel();
-        setAdapter();
         initConfig();
         setTitle();
         setLogo();
@@ -127,57 +136,117 @@ public class HomeActivity extends BaseActivity
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
+        mBinding.search.setOnClickListener(v -> SearchActivity.start(this));
+        mBinding.nav.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+            @Override
+            public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
+                if (position < 0 || position >= mTypes.size()) return;
+                if (position == mNav.getSelected()) return;
+                mPending = position;
+                App.post(mRunnable, 100);
+            }
+        });
+        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                mNav.setSelected(position);
+                mBinding.nav.setSelectedPosition(position);
+            }
+        });
     }
 
-    private void checkAction(Intent intent) {
-        if (Intent.ACTION_SEND.equals(intent.getAction())) {
-            VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
-        } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-            PermissionUtil.requestFile(this, allGranted -> checkType(intent));
-        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String keyword = intent.getStringExtra(SearchManager.QUERY);
-            if (!TextUtils.isEmpty(keyword)) SearchActivity.start(this, keyword);
-        }
-    }
-
-    private void checkType(Intent intent) {
-        if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
-            FileChooser.getUri(intent, uri -> loadLive(UrlUtil.toLocalUrl(uri)));
-        } else {
-            FileChooser.getUri(intent, uri -> VideoActivity.file(this, uri));
-        }
-    }
-
-    @SuppressLint("RestrictedApi")
-    private void setRecyclerView() {
-        CustomSelector selector = new CustomSelector();
-        selector.addPresenter(Integer.class, new HeaderPresenter());
-        selector.addPresenter(String.class, new ProgressPresenter());
-        selector.addPresenter(HomeBanner.class, new BannerPresenter(this));
-        selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+    /**
+     * 分页内容取自哪个站点。主页用当前配置的首页站点；
+     * 文件夹浏览页（VodActivity）用 intent 里带的 key，可能是另一个站点。
+     */
+    protected String getKey() {
+        return VodConfig.get().getHome().getKey();
     }
 
     private void setNav() {
-        mFuncNav = new HomeFuncNavAdapter(this);
-        mBinding.nav.setAdapter(mFuncNav);
-        setFunc();
+        mBinding.nav.setAdapter(mNav = new HomeNavAdapter(this));
+        // 设计稿：分类项行距 20px @2x = 10dp
+        mBinding.nav.setVerticalSpacing(ResUtil.dp2px(10));
+        mNav.setItems(mTypes, getExtraItems());
+    }
+
+    private List<Integer> getExtraItems() {
+        List<Integer> items = new ArrayList<>();
+        if (LiveConfig.hasUrl()) items.add(R.string.home_live);
+        items.add(R.string.home_setting);
+        items.add(R.string.home_keep);
+        return items;
+    }
+
+    private void setPager() {
+        mBinding.pager.setAdapter(new PageAdapter(getSupportFragmentManager()));
     }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.getResult().observe(this, result -> {
-            mAdapter.remove("progress");
-            addVideo(mResult = result);
-            Cache.clear().put(result);
-        });
+        mViewModel.getResult().observe(this, result -> onContent(result));
     }
 
-    private void setAdapter() {
-        mAdapter.add(HomeBanner.EMPTY);
-        mAdapter.add(R.string.home_recommend);
+    /**
+     * 内容就绪：分类列表既驱动左侧导航，也决定右侧分页数量。
+     * 子类把 loadContent() 换成自己的数据来源即可复用整套渲染。
+     */
+    protected void onContent(Result result) {
+        if (isFinishing() || isDestroyed()) return;
+        Cache.clear().put(result);
+        mTypes = result.getTypes();
+        mNav.setItems(mTypes, getExtraItems());
+        mNav.setSelected(0);
+        if (mBinding.pager.getAdapter() != null) mBinding.pager.getAdapter().notifyDataSetChanged();
+        mBinding.pager.setCurrentItem(0);
+        mBinding.nav.setSelectedPosition(0);
+        mBinding.progressLayout.showContent();
+        checkAction(getIntent());
+        setFocus();
+    }
+
+    protected void loadContent() {
+        mViewModel.homeContent();
+    }
+
+    private Class getType() {
+        int position = mNav == null ? -1 : mNav.getSelected();
+        if (mTypes == null || position < 0 || position >= mTypes.size()) return null;
+        return mTypes.get(position);
+    }
+
+    private FolderFragment getFragment() {
+        if (mBinding.pager.getAdapter() == null || mTypes.isEmpty()) return null;
+        return (FolderFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
+    }
+
+    private void switchTo(int position) {
+        if (mTypes == null || position < 0 || position >= mTypes.size()) return;
+        mNav.setSelected(position);
+        mBinding.pager.setCurrentItem(position);
+    }
+
+    private final Runnable mRunnable = () -> {
+        int position = mPending;
+        mPending = -1;
+        if (position >= 0 && position != mNav.getSelected()) switchTo(position);
+    };
+
+    private boolean isFilterVisible() {
+        return Optional.ofNullable(getType()).map(Class::getFilter).orElse(false);
+    }
+
+    private void updateFilter() {
+        Optional.ofNullable(getType()).ifPresent(this::updateFilter);
+    }
+
+    private void updateFilter(Class item) {
+        item.setFilter(!item.getFilter());
+        Optional.ofNullable(getFragment()).ifPresent(f -> f.toggleFilter(item.getFilter()));
+    }
+
+    public void closeFilter() {
+        if (isFilterVisible()) updateFilter();
     }
 
     private void setTitle() {
@@ -186,8 +255,23 @@ public class HomeActivity extends BaseActivity
         optional.ifPresent(s -> mBinding.title.setText(s));
     }
 
+    /**
+     * 顶部标识：配置自带 logo 就用配置的（保持换源后仍有站点识别度），
+     * 没有就用品牌标记——设计稿左上角放的是品牌图形，不是站点头像。
+     */
+    private void setLogo() {
+        if (TextUtils.isEmpty(getConfig().getLogo())) mBinding.logo.setImageResource(R.drawable.ic_home_logo);
+        else ImgUtil.logo(mBinding.logo);
+    }
+
+    private void setFocus() {
+        mBinding.nav.requestFocus();
+        App.post(() -> mBinding.title.setFocusable(true), 500);
+    }
+
     private void initConfig() {
         VodConfig.get().init().load(getCallback());
+        if (!isEntry()) return;
         LiveConfig.get().init().load();
         WallConfig.get().init();
     }
@@ -213,6 +297,25 @@ public class HomeActivity extends BaseActivity
         setFocus();
     }
 
+    private void checkAction(Intent intent) {
+        if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
+        } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
+            PermissionUtil.requestFile(this, allGranted -> checkType(intent));
+        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String keyword = intent.getStringExtra(SearchManager.QUERY);
+            if (!TextUtils.isEmpty(keyword)) SearchActivity.start(this, keyword);
+        }
+    }
+
+    private void checkType(Intent intent) {
+        if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
+            FileChooser.getUri(intent, uri -> loadLive(UrlUtil.toLocalUrl(uri)));
+        } else {
+            FileChooser.getUri(intent, uri -> VideoActivity.file(this, uri));
+        }
+    }
+
     private void loadLive(String url) {
         if (isFinishing() || isDestroyed()) return;
         LiveConfig.load(Config.find(url, 1), new Callback() {
@@ -223,72 +326,6 @@ public class HomeActivity extends BaseActivity
         });
     }
 
-    private void setFocus() {
-        mBinding.nav.requestFocus();
-    }
-
-    private void getVideo() {
-        mResult = Result.empty();
-        int index = mAdapter.indexOf(R.string.home_recommend);
-        boolean gone = mAdapter.indexOf("progress") == -1;
-        boolean hasItem = gone && mAdapter.size() > index + 1;
-        if (hasItem) mAdapter.removeItems(index + 1, mAdapter.size() - index - 1);
-        if (gone) mAdapter.add("progress");
-        mViewModel.homeContent();
-    }
-
-    private void addVideo(Result result) {
-        Style style = result.getStyle(getHome().getStyle());
-        Vod pick = pickBanner(result);
-        if (pick != null) {
-            int idx = mAdapter.indexOf(HomeBanner.EMPTY);
-            if (idx >= 0) {
-                mAdapter.remove(mAdapter.get(idx));
-                mAdapter.add(idx, HomeBanner.create(pick));
-            }
-        }
-        List<Vod> items = new ArrayList<>(result.getList());
-        if (pick != null) items.removeIf(v -> pick.equals(v));
-        if (style.isList()) mAdapter.addAll(mAdapter.size(), items);
-        else addGrid(items, style);
-    }
-
-    private Vod pickBanner(Result result) {
-        if (result == null) return null;
-        List<Vod> items = result.getList();
-        if (items == null || items.isEmpty()) return null;
-        for (Vod vod : items) {
-            if (vod != null && !vod.isFolder() && !vod.isAction()) return vod;
-        }
-        return null;
-    }
-
-    private void addGrid(List<Vod> items, Style style) {
-        List<ListRow> rows = new ArrayList<>();
-        VodPresenter presenter = new VodPresenter(this, style);
-        for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
-            adapter.addAll(0, part);
-            rows.add(new ListRow(adapter));
-        }
-        mAdapter.addAll(mAdapter.size(), rows);
-    }
-
-    private void setFunc() {
-        List<Func> items = new ArrayList<>();
-        items.add(Func.create(R.string.home_vod));
-        if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
-        items.add(Func.create(R.string.home_search));
-        items.add(Func.create(R.string.home_keep));
-        items.add(Func.create(R.string.home_push));
-        items.add(Func.create(R.string.home_setting));
-        mFuncNav.setItems(items);
-    }
-
-    private void setLogo() {
-        ImgUtil.logo(mBinding.logo);
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConfigEvent(ConfigEvent event) {
         switch (event.type()) {
@@ -297,10 +334,10 @@ public class HomeActivity extends BaseActivity
                 setLogo();
                 break;
             case COMMON:
-                setFunc();
+                mNav.setItems(mTypes, getExtraItems());
                 break;
             case BOOT:
-                LiveActivity.start(this);
+                if (isEntry()) LiveActivity.start(this);
                 break;
         }
     }
@@ -309,17 +346,18 @@ public class HomeActivity extends BaseActivity
     public void onRefreshEvent(RefreshEvent event) {
         switch (event.getType()) {
             case HOME:
-                getVideo();
+                loadContent();
                 setTitle();
                 break;
             case SIZE:
-                getVideo();
+                loadContent();
                 break;
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onServerEvent(ServerEvent event) {
+        if (!isEntry()) return;
         switch (event.type()) {
             case SEARCH:
                 SearchActivity.start(this, event.text());
@@ -332,6 +370,7 @@ public class HomeActivity extends BaseActivity
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCastEvent(CastEvent event) {
+        if (!isEntry()) return;
         if (VodConfig.get().getConfig().equals(event.config())) {
             VideoActivity.cast(this, event.history());
         } else {
@@ -354,27 +393,20 @@ public class HomeActivity extends BaseActivity
     }
 
     @Override
-    public void onItemClick(Func item) {
-        if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
-        else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
-        else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
-        else if (item.getResId() == R.string.home_push) PushActivity.start(this);
-        else if (item.getResId() == R.string.home_search) SearchActivity.start(this);
-        else if (item.getResId() == R.string.home_setting) SettingActivity.start(this);
+    public void onNavClick(int position) {
+        if (position >= mTypes.size()) return;
+        if (position == mNav.getSelected()) {
+            updateFilter();
+            return;
+        }
+        switchTo(position);
     }
 
     @Override
-    public void onItemClick(Vod item) {
-        if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
-        else if (getHome().isIndex()) CollectActivity.start(this, item.getName());
-        else VideoActivity.start(this, getHome().getKey(), item.getId(), item.getName(), item.getPic());
-    }
-
-    @Override
-    public boolean onLongClick(Vod item) {
-        if (item.isAction()) return false;
-        CollectActivity.start(this, item.getName());
-        return true;
+    public void onExtra(int resId) {
+        if (resId == R.string.home_live) LiveActivity.start(this);
+        else if (resId == R.string.home_setting) SettingActivity.start(this);
+        else if (resId == R.string.home_keep) KeepActivity.start(this);
     }
 
     @Override
@@ -384,7 +416,7 @@ public class HomeActivity extends BaseActivity
 
     @Override
     public void onRefresh() {
-        getVideo();
+        loadContent();
     }
 
     @Override
@@ -402,28 +434,49 @@ public class HomeActivity extends BaseActivity
     protected void onResume() {
         super.onResume();
         mClock.start();
+        Product.setNavOffset(getNavOffset());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mClock.stop();
+        Product.setNavOffset(0);
+    }
+
+    /**
+     * 左侧导航占掉的横向空间，必须与 activity_vod.xml 里的实际留白一致，
+     * 否则海报会按整屏宽计算，导致每行放不下预设列数。
+     */
+    private int getNavOffset() {
+        int px = getResources().getDimensionPixelSize(R.dimen.kiwi_nav_width) + getResources().getDimensionPixelSize(R.dimen.kiwi_body_gap);
+        return ResUtil.px2dp(px);
     }
 
     @Override
     protected void onBackInvoked() {
         if (mBinding.progressLayout.isProgress()) {
             showContent();
-        } else if (mBinding.recycler.getSelectedPosition() != 0) {
-            mBinding.recycler.scrollToPosition(0);
+        } else if (isFilterVisible()) {
+            updateFilter();
+        } else if (Optional.ofNullable(getFragment()).map(FolderFragment::moveToTop).orElse(false)) {
+            return;
+        } else if (Optional.ofNullable(getFragment()).map(FolderFragment::canBack).orElse(false)) {
+            Optional.ofNullable(getFragment()).ifPresent(FolderFragment::goBack);
+        } else if (PlaybackService.isRunning()) {
+            Util.moveToBackground(this);
         } else {
-            if (PlaybackService.isRunning()) Util.moveToBackground(this);
-            else super.onBackInvoked();
+            super.onBackInvoked();
         }
     }
 
     @Override
     protected void onDestroy() {
+        Product.setNavOffset(0);
+        if (!isEntry()) {
+            super.onDestroy();
+            return;
+        }
         DLNARendererService.stop(this);
         LiveConfig.get().clear();
         VodConfig.get().clear();
@@ -432,5 +485,27 @@ public class HomeActivity extends BaseActivity
         Source.get().exit();
         Server.get().stop();
         super.onDestroy();
+    }
+
+    class PageAdapter extends FragmentStatePagerAdapter {
+
+        public PageAdapter(@NonNull FragmentManager fm) {
+            super(fm);
+        }
+
+        @NonNull
+        @Override
+        public Fragment getItem(int position) {
+            return FolderFragment.newInstance(getKey(), mTypes.get(position));
+        }
+
+        @Override
+        public int getCount() {
+            return mTypes.size();
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        }
     }
 }

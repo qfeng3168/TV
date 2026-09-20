@@ -16,4 +16,35 @@
 
     <dimen name="kiwi_focus_stroke">2dp</dimen>
 
+    <!--
+      以下为「主页 / 点播页」按设计稿标注换算的尺寸。
+      设计稿画布 1920x1080、标注为 2x（等价 Android TV 的 960x540dp，
+      见 leanback/AndroidManifest.xml 的 design_width_in_dp），故 dp = 标注值 / 2。
+    -->
+
+    <!-- 顶部品牌条 -->
+    <dimen name="kiwi_topbar_height">80dp</dimen>
+    <dimen name="kiwi_topbar_padding">24dp</dimen>
+    <dimen name="kiwi_logo_size">32dp</dimen>
+    <dimen name="kiwi_icon_box">36dp</dimen>
+
+    <!-- 主体：两侧留白 24dp，左右两栏间距 20dp -->
+    <dimen name="kiwi_body_padding">24dp</dimen>
+    <dimen name="kiwi_body_gap">20dp</dimen>
+
+    <!-- 左侧分类导航：栏宽 100dp、行高 32dp、行内留白 10dp、圆角 5dp -->
+    <dimen name="kiwi_nav_width">100dp</dimen>
+    <dimen name="kiwi_nav_item_height">32dp</dimen>
+    <dimen name="kiwi_nav_item_padding">10dp</dimen>
+    <dimen name="kiwi_radius_nav">5dp</dimen>
+
+    <!-- 内容区 -->
+    <dimen name="kiwi_content_gap">12dp</dimen>
+
+    <!-- 首页大图 Banner：高 130dp、圆角 8dp、内留白 24dp -->
+    <dimen name="kiwi_banner_height">130dp</dimen>
+    <dimen name="kiwi_banner_padding">24dp</dimen>
+    <dimen name="kiwi_radius_banner">8dp</dimen>
+    <dimen name="kiwi_radius_tag">4dp</dimen>
+
 </resources>

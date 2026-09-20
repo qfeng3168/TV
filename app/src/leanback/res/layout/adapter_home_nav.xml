@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 分类导航项：设计稿 64px @2x = 32dp 高、左右留白 20px @2x = 10dp -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
+    android:layout_height="@dimen/kiwi_nav_item_height"
     android:background="@drawable/selector_home_nav"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="@dimen/kiwi_space_lg"
-    android:paddingEnd="@dimen/kiwi_space_lg">
+    android:paddingStart="@dimen/kiwi_nav_item_padding"
+    android:paddingEnd="@dimen/kiwi_nav_item_padding">
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/text"
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/text"
+        style="@style/Kiwi.Text.Nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"

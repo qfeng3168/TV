@@ -6,13 +6,13 @@
             <stroke
                 android:width="@dimen/kiwi_focus_stroke"
                 android:color="@color/on_surface_high" />
-            <corners android:radius="@dimen/kiwi_radius_lg" />
+            <corners android:radius="@dimen/kiwi_radius_banner" />
         </shape>
     </item>
 
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="@dimen/kiwi_radius_lg" />
+            <corners android:radius="@dimen/kiwi_radius_banner" />
         </shape>
     </item>
 

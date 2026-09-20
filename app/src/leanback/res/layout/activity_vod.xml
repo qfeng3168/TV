@@ -1,40 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  主页 / 点播页共用同一份布局：HomeActivity 与 VodActivity 都 inflate 本文件。
+  结构对齐设计稿 01：顶部品牌条 80dp + 主体（左 100dp 分类导航 / 右内容分页）。
+  尺寸换算依据：设计稿画布 1920x1080 为 2x 标注，dp = 标注值 / 2。
+-->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/surface_base"
     android:orientation="vertical">
 
-    <!-- 顶部品牌条：标识 + 搜索（分类导航移到左侧） -->
+    <!-- 顶部品牌条：标识 + 站点名 + 时钟 + 搜索 -->
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="88dp"
+        android:layout_height="@dimen/kiwi_topbar_height"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="@dimen/kiwi_space_xxl"
-        android:paddingEnd="@dimen/kiwi_space_xl">
+        android:paddingStart="@dimen/kiwi_topbar_padding"
+        android:paddingEnd="@dimen/kiwi_topbar_padding">
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:id="@+id/logo"
+            android:layout_width="@dimen/kiwi_logo_size"
+            android:layout_height="@dimen/kiwi_logo_size"
+            android:layout_marginEnd="@dimen/kiwi_space_sm"
             android:src="@drawable/ic_home_logo" />
 
-        <View
+        <com.fongmi.android.tv.ui.custom.CustomTitleView
+            android:id="@+id/title"
+            style="@style/Kiwi.Text.Brand"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="marquee"
+            android:focusable="false"
+            android:singleLine="true"
+            android:text="@string/app_name" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/clock"
+            style="@style/Kiwi.Text.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/kiwi_space_md"
+            tools:text="09:20:00" />
 
         <FrameLayout
             android:id="@+id/search"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="@dimen/kiwi_icon_box"
+            android:layout_height="@dimen/kiwi_icon_box"
             android:background="@drawable/selector_home_nav"
             android:focusable="true"
             android:focusableInTouchMode="true">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_home_search" />
 
@@ -42,31 +66,40 @@
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <!-- 主体：左侧分类导航 + 右侧内容 -->
+    <!-- 主体：左侧分类导航 + 右侧内容分页 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/kiwi_body_padding"
+        android:paddingTop="@dimen/kiwi_body_padding"
+        android:paddingEnd="@dimen/kiwi_body_padding"
+        android:paddingBottom="@dimen/kiwi_body_padding">
 
         <androidx.leanback.widget.VerticalGridView
             android:id="@+id/nav"
-            android:layout_width="200dp"
+            android:layout_width="@dimen/kiwi_nav_width"
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:paddingStart="@dimen/kiwi_space_lg"
-            android:paddingEnd="@dimen/kiwi_space_sm"
-            android:paddingTop="@dimen/kiwi_space_md"
-            android:paddingBottom="@dimen/kiwi_space_md"
+            android:paddingBottom="@dimen/kiwi_space_sm"
             app:focusOutEnd="false"
             app:focusOutFront="false" />
 
-        <com.fongmi.android.tv.ui.custom.CustomViewPager
-            android:id="@+id/pager"
+        <com.fongmi.android.tv.ui.custom.ProgressLayout
+            android:id="@+id/progressLayout"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_marginStart="@dimen/kiwi_body_gap"
+            android:layout_weight="1">
+
+            <com.fongmi.android.tv.ui.custom.CustomViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </com.fongmi.android.tv.ui.custom.ProgressLayout>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

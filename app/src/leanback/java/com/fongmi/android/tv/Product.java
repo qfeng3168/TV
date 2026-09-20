@@ -6,6 +6,18 @@ import com.fongmi.android.tv.utils.ResUtil;
 
 public class Product {
 
+    /**
+     * 页面级左侧导航占用的横向空间（栏宽 + 栏与内容之间的间距），单位 dp。
+     * 主页/点播页的内容区不是整屏宽，不扣掉这块就会按整屏宽算海报宽度，
+     * 结果是每行塞不下预设列数、最后一列被截断。
+     * 由承载导航的 Activity 在 onResume / onPause 里成对设置与清零。
+     */
+    private static int navOffset = 0;
+
+    public static void setNavOffset(int dp) {
+        navOffset = dp;
+    }
+
     public static int getDeviceType() {
         return 0;
     }
@@ -20,7 +32,7 @@ public class Product {
 
     public static int[] getSpec(Style style) {
         int column = getColumn(style);
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (column - 1));
+        int space = ResUtil.dp2px(48 + navOffset) + ResUtil.dp2px(16 * (column - 1));
         if (style.isOval()) space += ResUtil.dp2px(column * 16);
         return getSpec(space, column, style);
     }
