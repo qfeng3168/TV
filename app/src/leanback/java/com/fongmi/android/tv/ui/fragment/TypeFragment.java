@@ -2,7 +2,9 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -36,6 +38,7 @@ import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.presenter.FilterPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.common.collect.Lists;
@@ -55,6 +58,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private List<Filter> mFilters;
     private boolean headerVisible;
     private boolean filterVisible;
+    private boolean mBannerShown;
 
     public static TypeFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
@@ -157,6 +161,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private void getVideo() {
         mLast = null;
+        mBannerShown = false;
         checkFilter();
         mScroller.reset();
         getVideo(getTypeId(), "1");
@@ -173,7 +178,35 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         mBinding.progressLayout.showContent(first & flag, size);
         mBinding.swipeLayout.setRefreshing(false);
         mScroller.endLoading(result);
+        setBanner(result);
         if (size > 0) addVideo(result);
+    }
+
+    /**
+     * 推荐位取本分类首轮结果的首位影片，每轮加载只设定一次，翻页不会覆盖。
+     */
+    private void setBanner(Result result) {
+        if (mBannerShown) return;
+        List<Vod> list = result.getList();
+        if (list == null || list.isEmpty()) {
+            mBinding.bannerWrap.setVisibility(View.GONE);
+            return;
+        }
+        Vod item = list.get(0);
+        if (item.isFolder() || item.isAction()) {
+            mBinding.bannerWrap.setVisibility(View.GONE);
+            return;
+        }
+        mBinding.banner.name.setText(item.getName());
+        mBinding.banner.tag.setText(item.getTypeName());
+        mBinding.banner.tag.setVisibility(TextUtils.isEmpty(item.getTypeName()) ? View.GONE : View.VISIBLE);
+        mBinding.banner.remark.setText(item.getRemarks());
+        mBinding.banner.remark.setVisibility(TextUtils.isEmpty(item.getRemarks()) ? View.GONE : View.VISIBLE);
+        mBinding.banner.getRoot().setOnClickListener(v -> onItemClick(item));
+        mBinding.banner.getRoot().setOnLongClickListener(v -> onLongClick(item));
+        ImgUtil.load(item.getName(), item.getPic(), mBinding.banner.image);
+        mBinding.bannerWrap.setVisibility(View.VISIBLE);
+        mBannerShown = true;
     }
 
     private void addVideo(Result result) {

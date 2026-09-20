@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selected and focused at once: keep the brand fill so the current category
+     stays obvious, and add the focus ring so the remote has a clear target. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@color/brand_primary" />
+
+    <stroke
+        android:width="@dimen/kiwi_focus_stroke"
+        android:color="@color/on_surface_high" />
+
+    <corners android:radius="@dimen/kiwi_radius_md" />
+
+</shape>

@@ -9,6 +9,11 @@
         <item name="cornerSizeTopRight">@dimen/kiwi_radius_md</item>
     </style>
 
+    <!-- 首页推荐位：整块大图，四角都收 -->
+    <style name="Home.Banner">
+        <item name="cornerSize">@dimen/kiwi_radius_lg</item>
+    </style>
+
     <style name="Vod.Grid.Large">
         <item name="cornerSize">@dimen/kiwi_radius_md</item>
     </style>

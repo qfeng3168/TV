@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -23,22 +22,27 @@ import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.ui.adapter.TypeAdapter;
+import com.fongmi.android.tv.ui.adapter.HomeNavAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.FolderFragment;
 import com.fongmi.android.tv.utils.KeyUtil;
-import com.fongmi.android.tv.utils.ResUtil;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
 import java.util.Optional;
 
-public class VodActivity extends BaseActivity implements TypeAdapter.OnClickListener {
+/**
+ * 首页：顶部品牌条 + 左侧分类导航 + 右侧内容分页。
+ * 焦点落在导航项上即切页（带 100ms 去抖），对已选中项按 OK 展开/收起该分类的筛选。
+ */
+public class VodActivity extends BaseActivity implements HomeNavAdapter.OnClickListener {
 
     private ActivityVodBinding mBinding;
-    private TypeAdapter mAdapter;
-    private View mOldView;
+    private HomeNavAdapter mNav;
+    private List<Class> mTypes;
+    private int mPending = -1;
 
     public static void start(Activity activity, Result result) {
         start(activity, VodConfig.get().getHome().getKey(), result);
@@ -61,7 +65,10 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     private Class getType() {
-        return mAdapter.get(mBinding.pager.getCurrentItem());
+        if (mTypes == null || mNav == null) return null;
+        int position = mNav.getSelected();
+        if (position < 0 || position >= mTypes.size()) return null;
+        return mTypes.get(position);
     }
 
     private FolderFragment getFragment() {
@@ -75,55 +82,54 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        setRecyclerView();
-        setTypes();
+        setNav();
         setPager();
     }
 
     @Override
     protected void initEvent() {
+        mBinding.search.setOnClickListener(v -> SearchActivity.start(this));
         mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
-                mBinding.recycler.requestFocus();
+                mNav.setSelected(position);
+                mBinding.nav.setSelectedPosition(position);
             }
         });
-        mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
+        mBinding.nav.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
+                if (mTypes == null || position < 0 || position >= mTypes.size()) return;
+                if (position == mNav.getSelected()) return;
+                mPending = position;
+                App.post(mRunnable, 100);
             }
         });
     }
 
-    private void setRecyclerView() {
-        mBinding.recycler.requestFocus();
-        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
-        mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.recycler.setAdapter(mAdapter = new TypeAdapter(this));
-    }
-
-    private void setTypes() {
-        mAdapter.addAll(getResult().getTypes());
+    private void setNav() {
+        mTypes = getResult().getTypes();
+        mBinding.nav.setAdapter(mNav = new HomeNavAdapter(this));
+        mNav.addAll(mTypes);
+        mNav.setSelected(0);
+        mBinding.nav.setSelectedPosition(0);
+        mBinding.nav.requestFocus();
     }
 
     private void setPager() {
         mBinding.pager.setAdapter(new PageAdapter(getSupportFragmentManager()));
     }
 
-    private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
-        if (mOldView != null) mOldView.setSelected(false);
-        if ((mOldView = child != null ? child.itemView : null) == null) return;
-        mOldView.setSelected(true);
-        App.post(mRunnable, 100);
+    private void switchTo(int position) {
+        if (mTypes == null || position < 0 || position >= mTypes.size()) return;
+        mNav.setSelected(position);
+        mBinding.pager.setCurrentItem(position);
     }
 
-    private final Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mBinding.pager.setCurrentItem(mBinding.recycler.getSelectedPosition());
-        }
+    private final Runnable mRunnable = () -> {
+        int position = mPending;
+        mPending = -1;
+        if (position >= 0 && position != mNav.getSelected()) switchTo(position);
     };
 
     private boolean isFilterVisible() {
@@ -137,7 +143,6 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     private void updateFilter(Class item) {
         item.setFilter(!item.getFilter());
         getFragment().toggleFilter(item.getFilter());
-        mAdapter.notifyItemRangeChanged(mAdapter.indexOf(item), 1);
     }
 
     public void closeFilter() {
@@ -150,13 +155,17 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
     }
 
     @Override
-    public void onItemClick(Class item) {
-        updateFilter(item);
+    public void onNavClick(int position) {
+        if (position == mNav.getSelected()) {
+            updateFilter();
+            return;
+        }
+        switchTo(position);
     }
 
     @Override
-    public void onRefresh(Class item) {
-        getFragment().onRefresh();
+    public void onShortcut() {
+        KeepActivity.start(this);
     }
 
     @Override
@@ -182,13 +191,13 @@ public class VodActivity extends BaseActivity implements TypeAdapter.OnClickList
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            Class type = mAdapter.get(position);
+            Class type = mTypes.get(position);
             return FolderFragment.newInstance(getKey(), type);
         }
 
         @Override
         public int getCount() {
-            return mAdapter.getItemCount();
+            return mTypes.size();
         }
 
         @Override

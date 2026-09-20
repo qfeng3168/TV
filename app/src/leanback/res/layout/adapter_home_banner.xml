@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="240dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:foreground="@drawable/selector_home_banner">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/surface_card"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/Home.Banner" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/shape_home_banner_scrim" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/kiwi_space_xl"
+        android:paddingEnd="@dimen/kiwi_space_xl"
+        android:paddingBottom="@dimen/kiwi_space_xl">
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_home_banner_tag"
+            android:singleLine="true"
+            android:textColor="@color/on_brand"
+            tools:text="独播" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Title" android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_high"
+            tools:text="山河故人" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/remark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_medium"
+            tools:text="更新至第 12 集" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</FrameLayout>
