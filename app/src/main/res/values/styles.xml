@@ -9,8 +9,8 @@
         <item name="cornerSizeTopRight">@dimen/kiwi_radius_md</item>
     </style>
 
-    <!-- 首页推荐位：整块大图，四角都收 -->
-    <style name="Home.Banner">
+    <!-- 首页推荐位：整块大图，四角都收。显式挂到 Vod 基础样式，否则 aapt2 会按点号去解析不存在的 @style/Home -->
+    <style name="Home.Banner" parent="Vod">
         <item name="cornerSize">@dimen/kiwi_radius_lg</item>
     </style>
 
