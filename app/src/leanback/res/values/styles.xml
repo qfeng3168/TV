@@ -110,9 +110,11 @@
         <item name="android:textColor">@color/home_nav_text</item>
     </style>
 
-    <!-- 卡片主标题：奇异果 #D1D1D1、约 36px -> 18sp -->
+    <!-- 卡片主标题：实测奇异果「河神」墨迹高 29px = 14.5dp、主色 #D1D1D1、
+         每字 14.5dp（≈15.4sp）。取 15sp。注意别把墨迹高直接当字号 —— 36px 是
+         上一版的原值，那是把墨迹当 em 了，实际会大 16%。 -->
     <style name="Kiwi.Text.CardTitle" parent="Kiwi.Text">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/card_title</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
