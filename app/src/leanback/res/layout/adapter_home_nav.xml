@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 分类导航项：对齐奇异果实测——项高 30dp、内容左内边距 18dp、字号 16sp。
+<!-- 分类导航项：对齐奇异果实测——项高 30dp、内容左内边距 18dp、字号 15sp。
      项宽由容器固定为 kiwi_nav_width(114dp，与奇异果药丸实测宽度一致)，文字左对齐，
      宽度不随内容变化。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"

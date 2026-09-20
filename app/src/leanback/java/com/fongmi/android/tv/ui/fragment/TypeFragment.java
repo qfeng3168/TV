@@ -130,7 +130,9 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void setRecyclerView() {
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(Vod.class, new VodPresenter(this, Style.list()));
-        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
+        // 列距必须和 Product.getSpec() 算宽度时预留的值一致。这里原本写死 16dp，
+        // 而 getSpec 按 24dp 预留，多出来的宽度全被推到行尾，右留白凭空多 24dp。
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(getResources().getInteger(R.integer.kiwi_grid_gap_dp)), VodPresenter.class);
         selector.addPresenter(ListRow.class, new CustomRowPresenter(8, FocusHighlight.ZOOM_FACTOR_NONE, HorizontalGridView.FOCUS_SCROLL_ALIGNED), FilterPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
         mBinding.recycler.setHeader(getActivity(), R.id.recycler);

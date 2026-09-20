@@ -101,12 +101,12 @@
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <!-- 分类导航项：行高 60px(30dp)、字进距 14.2dp/字 -> 16sp -->
+    <!-- 分类导航项：行高 60px(30dp)、字进距 14.2dp/字 -> 15sp -->
     <style name="Kiwi.Text.Nav" parent="Kiwi.Text">
-        <!-- 16sp：奇异果导航实测字进距 14.2dp/字（≈15sp）。用 20sp 会让「热播剧集」
-             这类 4 字分类名被截断成「热播…」。16sp 下 4 字占 64dp，114dp 药丸内
-             可用 78dp，留有余量。 -->
-        <item name="android:textSize">16sp</item>
+        <!-- 15sp：奇异果导航实测 2 字标签宽 57px、3 字 85px，即 14.2dp/字；15sp 下
+             实测 14.6dp/字，比 16sp 的 15.6dp/字更贴近。用 20sp 会把「热播剧集」
+             这类 4 字分类名截断成「热播…」。 -->
+        <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/home_nav_text</item>
     </style>
 
