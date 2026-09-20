@@ -118,4 +118,9 @@ public class PlayerSetting {
     public static void putBuffer(int buffer) {
         Prefers.put("buffer", Math.clamp(buffer, MIN_BUFFER, MAX_BUFFER));
     }
+
+    /** Cycle the buffer length so callers do not need to know the bounds. */
+    public static void nextBuffer() {
+        putBuffer(getBuffer() % MAX_BUFFER + MIN_BUFFER);
+    }
 }

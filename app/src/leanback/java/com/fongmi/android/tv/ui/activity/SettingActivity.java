@@ -416,7 +416,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void setBuffer(View view) {
-        PlayerSetting.putBuffer(PlayerSetting.getBuffer() % PlayerSetting.MAX_BUFFER + 1);
+        PlayerSetting.nextBuffer();
         mBinding.itemBuffer.value.setText(ResUtil.getString(R.string.setting_buffer_second, PlayerSetting.getBuffer()));
     }
 
