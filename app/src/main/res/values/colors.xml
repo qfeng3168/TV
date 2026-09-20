@@ -26,17 +26,21 @@
     <color name="white_80">#CCFFFFFF</color>
     <color name="white_90">#E6FFFFFF</color>
 
-    <color name="brand_primary">#FF00DC5A</color>
-    <color name="brand_primary_deep">#FF00CC36</color>
-    <color name="brand_primary_fill">#1F00DC5A</color>
-    <color name="brand_primary_dim">#3D00DC5A</color>
+    <!-- 奇异果（银河奇异果 / 爱奇艺 TV）品牌绿。
+         #00BE06 是品牌主色，#00A805 用于按下与渐变末端，两者不可互换。
+         两套带透明度的填充色只用于进度条缓冲段与选中底色。 -->
+    <color name="brand_primary">#FF00BE06</color>
+    <color name="brand_primary_deep">#FF00A805</color>
+    <color name="brand_primary_fill">#1F00BE06</color>
+    <color name="brand_primary_dim">#3D00BE06</color>
     <color name="brand_vip">#FFE2B376</color>
     <color name="brand_alert">#FFFF3B30</color>
 
     <!-- 品牌绿是亮色，压在上面的文字必须是深色，否则对比度不足 -->
     <color name="on_brand">#FF0B0D10</color>
 
-    <color name="surface_base">#FF0E1013</color>
+    <!-- 深色影院底：base 是最外层背景，card 是设置项与列表项，raised 是浮层与输入框 -->
+    <color name="surface_base">#FF0B0C10</color>
     <color name="surface_card">#FF171A1F</color>
     <color name="surface_raised">#FF21252C</color>
     <color name="surface_scrim">#CC000000</color>
@@ -44,9 +48,10 @@
 
     <color name="outline_subtle">#1FFFFFFF</color>
 
+    <!-- 文字灰阶取自设计稿的固定值，不用半透明白，避免叠在卡片上时发灰 -->
     <color name="on_surface_high">#FFFFFFFF</color>
-    <color name="on_surface_medium">#B3FFFFFF</color>
-    <color name="on_surface_low">#80FFFFFF</color>
-    <color name="on_surface_disabled">#4DFFFFFF</color>
+    <color name="on_surface_medium">#FFB9BEC7</color>
+    <color name="on_surface_low">#FF7A808B</color>
+    <color name="on_surface_disabled">#FF4A4F57</color>
 
 </resources>
