@@ -242,7 +242,10 @@ public class HomeActivity extends BaseActivity
         Vod pick = pickBanner(result);
         if (pick != null) {
             int idx = mAdapter.indexOf(HomeBanner.EMPTY);
-            if (idx >= 0) mAdapter.set(idx, HomeBanner.create(pick));
+            if (idx >= 0) {
+                mAdapter.remove(mAdapter.get(idx));
+                mAdapter.add(idx, HomeBanner.create(pick));
+            }
         }
         List<Vod> items = new ArrayList<>(result.getList());
         if (pick != null) items.removeIf(v -> pick.equals(v));
