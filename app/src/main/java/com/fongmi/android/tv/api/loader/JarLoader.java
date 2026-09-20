@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.api.loader;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Download;
@@ -15,11 +14,7 @@ import com.github.catvod.utils.Path;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import dalvik.system.DexClassLoader;
 
 public class JarLoader {
-
-    private static final String TAG = "JarLoader";
 
     private final ConcurrentHashMap<String, DexClassLoader> loaders;
     private final ConcurrentHashMap<String, Method> methods;
@@ -63,11 +56,7 @@ public class JarLoader {
         if (!Path.exists(file) || !file.setReadOnly()) return;
         String cachePath = Path.jar().getAbsolutePath();
         DexClassLoader loader = new DexClassLoader(file.getAbsolutePath(), cachePath, cachePath, App.get().getClassLoader());
-        if (isInitUnsafe(file)) {
-            Log.w(TAG, "init skipped for '" + key + "': dex contains System.exit / Runtime.exit / Process.killProcess");
-        } else {
-            invokeInit(loader);
-        }
+        invokeInit(loader);
         invokeProxy(key, loader);
         loaders.put(key, loader);
     }
@@ -79,28 +68,6 @@ public class JarLoader {
             method.invoke(clz, App.get());
         } catch (Throwable e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 预扫描 jar 字节，判断其 init() 是否可能调用 System.exit / Runtime.exit /
-     * Process.killProcess 从而杀掉本进程。命中则跳过 init，避免第三方 jar
-     * 因本地代理/权限等自身环境未就绪时直接终止宿主进程。
-     * 命中不代表 spider 不能用 —— 只跳过 init，Proxy 与 spider 类仍正常加载。
-     * 说明：dex 的 string data 用 MUTF-8 存储纯 ASCII 内容，所以直接按
-     * US_ASCII 做字节子串搜索是可靠的。
-     */
-    private boolean isInitUnsafe(File file) {
-        try (InputStream is = new FileInputStream(file)) {
-            byte[] bytes = is.readAllBytes();
-            String content = new String(bytes, StandardCharsets.US_ASCII);
-            boolean hasExit = content.contains("exit");
-            boolean hasSystemExit = content.contains("Ljava/lang/System;") && hasExit;
-            boolean hasRuntimeExit = content.contains("Ljava/lang/Runtime;") && hasExit;
-            boolean hasKillProcess = content.contains("android/os/Process") && content.contains("killProcess");
-            return hasSystemExit || hasRuntimeExit || hasKillProcess;
-        } catch (IOException e) {
-            return false;
         }
     }
 
