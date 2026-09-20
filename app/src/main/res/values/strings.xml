@@ -280,6 +280,54 @@
     <string name="setting_off">Off</string>
     <string name="setting_on">On</string>
 
+    <!-- 设置页分类导航与新增设置项 -->
+    <string name="setting_title">Settings</string>
+    <string name="setting_decode">Decode setting</string>
+    <string name="setting_crumb">Settings › %1$s</string>
+    <string name="setting_tab_common">General</string>
+    <string name="setting_tab_player">Player</string>
+    <string name="setting_tab_decode">Decode</string>
+    <string name="setting_tab_vod">Vod</string>
+    <string name="setting_tab_live">Live</string>
+    <string name="setting_tab_epg">EPG</string>
+    <string name="setting_tab_network">Network</string>
+    <string name="setting_tab_about">About</string>
+
+    <string name="setting_engine">Playback engine</string>
+    <string name="setting_engine_desc">Player kernel used for vod and local files</string>
+    <string name="setting_background">Background playback</string>
+    <string name="setting_background_desc">Behavior after leaving the player</string>
+    <string name="setting_buffer">Buffer time</string>
+    <string name="setting_buffer_desc">Seconds buffered before playback starts</string>
+    <string name="setting_buffer_second">%1$d s</string>
+    <string name="setting_preload">Preload</string>
+    <string name="setting_preload_desc">Preload video data while playing</string>
+    <string name="setting_preload_next">Preload next episode</string>
+    <string name="setting_preload_next_desc">Start loading the next episode before it plays</string>
+    <string name="setting_video_prefer">Hardware decode first</string>
+    <string name="setting_video_prefer_desc">Prefer hardware decoder, fall back to software</string>
+    <string name="setting_tunnel">Tunnel mode</string>
+    <string name="setting_tunnel_desc">ExoPlayer tunneling, helps on some 4K devices</string>
+    <string name="setting_live_boot">Auto play on launch</string>
+    <string name="setting_live_boot_desc">Play the last watched channel on startup</string>
+    <string name="setting_live_change">Up/down key channel switch</string>
+    <string name="setting_live_change_desc">Use up/down keys to change channel</string>
+    <string name="setting_live_across">Switch across groups</string>
+    <string name="setting_live_across_desc">Up/down keys can jump to the next group</string>
+    <string name="setting_live_invert">Reverse key order</string>
+    <string name="setting_live_invert_desc">Swap the direction of channel switching</string>
+    <string name="setting_live_scale">Live aspect ratio</string>
+    <string name="setting_live_scale_desc">Scale, crop or keep the original ratio</string>
+    <string name="setting_epg_span">Program guide range</string>
+    <string name="setting_epg_span_desc">How far ahead the guide is shown</string>
+    <string name="setting_epg_span_hour">%1$d hours</string>
+    <string name="setting_epg_past">Show past programs</string>
+    <string name="setting_epg_past_desc">Keep finished programs in the guide</string>
+    <string name="setting_epg_offset">Time zone offset</string>
+    <string name="setting_epg_offset_desc">Correct program time, default +08:00</string>
+    <string name="setting_epg_catchup">Catchup and timeshift</string>
+    <string name="setting_epg_catchup_desc">Show replay and timeshift entries</string>
+
     <!-- Backup & Restore -->
     <string name="restore_select">Select backup</string>
     <string name="restore_success">Restore successful</string>
@@ -423,6 +471,13 @@
         <item>4:3</item>
         <item>Fill</item>
         <item>Zoom</item>
+    </string-array>
+
+    <!-- 后台播放三档，顺序对应 PlayerSetting 的 0 / 1 / 2 -->
+    <string-array name="select_background">
+        <item>Off</item>
+        <item>Play</item>
+        <item>Picture in picture</item>
     </string-array>
 
     <string-array name="audio_effect_stability_levels">

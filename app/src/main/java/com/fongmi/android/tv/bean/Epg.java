@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.parser.EpgParser;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.utils.Json;
 import com.google.gson.annotations.SerializedName;
@@ -95,6 +96,23 @@ public class Epg {
     public EpgData getEpgData() {
         for (EpgData item : getList()) if (item.isSelected()) return item;
         return new EpgData();
+    }
+
+    /** 按 EPG 设置裁剪节目单：过滤掉已播完的节目，以及超出时间跨度的未来节目。
+        没有时间信息的条目直接保留，避免整条节目单被清空。 */
+    public List<EpgData> filter() {
+        long now = System.currentTimeMillis();
+        long limit = now + Setting.getEpgSpanMillis();
+        boolean past = Setting.isEpgPast();
+        List<EpgData> items = new ArrayList<>();
+        for (EpgData item : getList()) {
+            if (item.getEndTime() == 0) {
+                items.add(item);
+            } else if ((past || item.getEndTime() >= now) && item.getStartTime() <= limit) {
+                items.add(item);
+            }
+        }
+        return items;
     }
 
     public Epg selected() {

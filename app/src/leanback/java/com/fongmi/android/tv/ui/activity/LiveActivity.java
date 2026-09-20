@@ -52,6 +52,7 @@ import com.fongmi.android.tv.player.extractor.Source;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.LiveSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupAdapter;
@@ -704,10 +705,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         EpgData data = epg.getEpgData();
         mCurrentEpg = data;
         boolean hasTitle = !data.getTitle().isEmpty();
-        mEpgDataAdapter.addAll(epg.getList());
+        mEpgDataAdapter.addAll(epg.filter());
         mBinding.widget.name.setMaxEms(hasTitle ? 12 : 48);
         mBinding.widget.play.setText(data.format());
-        mBinding.widget.shift.setVisibility(mChannel.hasShift() ? View.VISIBLE : View.GONE);
+        mBinding.widget.shift.setVisibility(mChannel.hasShift() && Setting.isEpgCatchup() ? View.VISIBLE : View.GONE);
         mLive.onEpgChanged(data);
         setWidth(epg);
     }
@@ -832,7 +833,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void onShift() {
-        if (mCurrentEpg == null || mChannel == null || !mChannel.hasShift()) return;
+        if (mCurrentEpg == null || mChannel == null || !mChannel.hasShift() || !Setting.isEpgCatchup()) return;
         mLive.selectShift(mCurrentEpg, player().getPosition());
     }
 

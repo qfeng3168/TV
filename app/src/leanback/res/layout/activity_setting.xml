@@ -1,445 +1,816 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 设置页采用「左侧分类导航 + 右侧设置项」双栏结构。
+     左侧导航项用 activated 表示当前分类，右侧同时只显示一个分类块，
+     其余块为 GONE，GONE 的视图不可聚焦，因此遥控器不会跳进隐藏分类。 -->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    tools:ignore="NestedWeights">
+    android:background="@color/surface_base"
+    android:orientation="horizontal"
+    android:padding="24dp">
 
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
+        android:layout_width="240dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Display" android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/kiwi_space_md"
+            android:text="@string/setting_title"
+            android:textColor="@color/on_surface_high" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navCommon"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/selector_setting_nav"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_common"
+            android:textColor="@color/setting_nav_text" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/vod"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_vod"
-                     />
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/vodUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/vodHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/vodHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_history" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navPlayer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_player"
+            android:textColor="@color/setting_nav_text" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/live"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_live"
-                     />
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/liveUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/liveHome"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/liveHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_history" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/epg"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navDecode"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:orientation="horizontal">
-
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_epg"
-                 />
-
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/epgText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="middle"
-                android:gravity="end"
-                android:singleLine="true"
-                
-                tools:text="https://" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_action_edit" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_decode"
+            android:textColor="@color/setting_nav_text" />
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/wall"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_wall"
-                     />
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/wallUrl"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    
-                    tools:ignore="NestedWeights"
-                    tools:text="https://" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/wallDefault"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_home" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/wallRefresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_setting_refresh" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/player"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navVod"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_vod"
+            android:textColor="@color/setting_nav_text" />
 
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_player"
-                 />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/danmaku"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navLive"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_live"
+            android:textColor="@color/setting_nav_text" />
 
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_danmaku"
-                 />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/incognito"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navEpg"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_epg"
+            android:textColor="@color/setting_nav_text" />
 
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_incognito"
-                 />
-
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/incognitoText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                
-                tools:text="Off" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/doh"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navNetwork"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:orientation="horizontal">
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_network"
+            android:textColor="@color/setting_nav_text" />
 
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_doh"
-                 />
-
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/dohText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                
-                tools:text="Google" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/size"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/navAbout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/selector_item"
+            android:layout_height="60dp"
+            android:layout_marginTop="@dimen/kiwi_space_sm"
+            android:background="@drawable/selector_setting_nav"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/backup"
-            android:orientation="horizontal">
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/kiwi_space_lg"
+            android:paddingEnd="@dimen/kiwi_space_lg"
+            android:text="@string/setting_tab_about"
+            android:textColor="@color/setting_nav_text" />
 
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/setting_size"
-                 />
-
-            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/sizeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                
-                tools:text="Medium" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/backup"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_backup"
-                     />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/restore"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_restore"
-                     />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/cache"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_cache"
-                     />
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/cacheText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    
-                    tools:text="1.0 MB" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/version"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_version"
-                     />
-
-                <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/versionText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    
-                    tools:text="1.2.1" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
-</androidx.core.widget.NestedScrollView>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/kiwi_space_lg"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        tools:ignore="NestedWeights">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Subtitle" android:id="@+id/breadcrumb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/kiwi_space_md"
+                android:textColor="@color/on_surface_low"
+                tools:text="系统设置 › 通用设置" />
+
+            <!-- 通用设置：三个配置源与隐私开关 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewCommon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/vod"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_setting_card"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp"
+                        android:orientation="horizontal"
+                        android:paddingStart="@dimen/kiwi_space_lg"
+                        android:paddingEnd="@dimen/kiwi_space_lg">
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/kiwi_space_md"
+                            android:layout_weight="0.3"
+                            android:ellipsize="end"
+                            android:singleLine="true"
+                            android:text="@string/setting_vod"
+                            android:textColor="@color/on_surface_high" />
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/vodUrl"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.7"
+                            android:ellipsize="middle"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:textColor="@color/brand_primary"
+                            tools:ignore="NestedWeights"
+                            tools:text="https://" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/vodHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_sm"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_home" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/vodHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_history" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/live"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_setting_card"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp"
+                        android:orientation="horizontal"
+                        android:paddingStart="@dimen/kiwi_space_lg"
+                        android:paddingEnd="@dimen/kiwi_space_lg">
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/kiwi_space_md"
+                            android:layout_weight="0.3"
+                            android:ellipsize="end"
+                            android:singleLine="true"
+                            android:text="@string/setting_live"
+                            android:textColor="@color/on_surface_high" />
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/liveUrl"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.7"
+                            android:ellipsize="middle"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:textColor="@color/brand_primary"
+                            tools:ignore="NestedWeights"
+                            tools:text="https://" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/liveHome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_sm"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_home" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/liveHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_history" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/wall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_setting_card"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center_vertical"
+                        android:minHeight="64dp"
+                        android:orientation="horizontal"
+                        android:paddingStart="@dimen/kiwi_space_lg"
+                        android:paddingEnd="@dimen/kiwi_space_lg">
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/kiwi_space_md"
+                            android:layout_weight="0.3"
+                            android:ellipsize="end"
+                            android:singleLine="true"
+                            android:text="@string/setting_wall"
+                            android:textColor="@color/on_surface_high" />
+
+                        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/wallUrl"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.7"
+                            android:ellipsize="middle"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:textColor="@color/brand_primary"
+                            tools:ignore="NestedWeights"
+                            tools:text="https://" />
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/wallDefault"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_sm"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_home" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/wallRefresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/selector_item_round"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_setting_refresh" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/incognito"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_incognito"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/incognitoText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/brand_primary"
+                        tools:text="Off" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 播放设置：子页入口与全局播放行为 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewPlayer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/player"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_player"
+                        android:textColor="@color/on_surface_high" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/danmaku"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_danmaku"
+                        android:textColor="@color/on_surface_high" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <include
+                    android:id="@+id/itemBackground"
+                    layout="@layout/adapter_setting_item"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemBuffer"
+                    layout="@layout/adapter_setting_item"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 解码设置 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewDecode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/decode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_decode"
+                        android:textColor="@color/on_surface_high" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <include
+                    android:id="@+id/itemVideoPrefer"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemTunnel"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 点播设置：影响点播与本地文件的默认行为 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewVod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <include
+                    android:id="@+id/itemEngine"
+                    layout="@layout/adapter_setting_item" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/size"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_size"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/sizeText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/brand_primary"
+                        tools:text="Medium" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <include
+                    android:id="@+id/itemPreloadNext"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 直播设置：影响换台、起播与画面比例 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewLive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <include
+                    android:id="@+id/itemLiveBoot"
+                    layout="@layout/adapter_setting_switch" />
+
+                <include
+                    android:id="@+id/itemLiveChange"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemLiveAcross"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemLiveInvert"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemLiveScale"
+                    layout="@layout/adapter_setting_item"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- EPG 设置：节目单数据源、展示范围与回看时移 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewEpg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/epg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_epg"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/epgText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="middle"
+                        android:gravity="end"
+                        android:singleLine="true"
+                        android:textColor="@color/brand_primary"
+                        tools:text="https://" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/kiwi_space_md"
+                        android:padding="@dimen/kiwi_space_sm"
+                        android:src="@drawable/ic_action_edit" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <include
+                    android:id="@+id/itemEpgSpan"
+                    layout="@layout/adapter_setting_item"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemEpgPast"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemEpgOffset"
+                    layout="@layout/adapter_setting_item"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+                <include
+                    android:id="@+id/itemEpgCatchup"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 网络设置 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewNetwork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/doh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_doh"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/dohText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/brand_primary"
+                        tools:text="Google" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <include
+                    android:id="@+id/itemPreload"
+                    layout="@layout/adapter_setting_switch"
+                    android:layout_marginTop="@dimen/kiwi_space_sm" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 关于本机 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/viewAbout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/version"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_version"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/versionText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/brand_primary"
+                        tools:text="1.2.1" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/cache"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/kiwi_space_md"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_cache"
+                        android:textColor="@color/on_surface_high" />
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/cacheText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/brand_primary"
+                        tools:text="1.0 MB" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/backup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_backup"
+                        android:textColor="@color/on_surface_high" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/restore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/kiwi_space_sm"
+                    android:background="@drawable/selector_setting_card"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="64dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/kiwi_space_lg"
+                    android:paddingEnd="@dimen/kiwi_space_lg">
+
+                    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/setting_restore"
+                        android:textColor="@color/on_surface_high" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

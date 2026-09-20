@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 开关型设置项：名称 + 说明 + 右侧开关。
+     开关用 FrameLayout 轨道 + 圆形滑块实现，开/关由代码切换轨道背景与滑块 gravity，
+     避免引入 MaterialSwitch 后要额外处理 TV 遥控器焦点与字色。 -->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/selector_setting_card"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:minHeight="76dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/kiwi_space_lg"
+    android:paddingEnd="@dimen/kiwi_space_lg"
+    android:paddingTop="@dimen/kiwi_space_sm"
+    android:paddingBottom="@dimen/kiwi_space_sm">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_high"
+            tools:text="跳过片头片尾" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_low"
+            tools:text="自动跳过片头与片尾" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <FrameLayout
+        android:id="@+id/track"
+        android:layout_width="60dp"
+        android:layout_height="34dp"
+        android:layout_marginStart="@dimen/kiwi_space_md"
+        android:background="@drawable/shape_switch_track_off"
+        android:padding="5dp">
+
+        <View
+            android:id="@+id/knob"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="start|center_vertical"
+            android:background="@drawable/shape_switch_knob" />
+
+    </FrameLayout>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

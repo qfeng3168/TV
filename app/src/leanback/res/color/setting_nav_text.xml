@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 选中态是实心品牌绿底，文字必须切到深色；焦点态底是深色描边框，文字保持高亮 -->
+    <item android:color="@color/on_brand" android:state_activated="true" />
+    <item android:color="@color/on_surface_high" android:state_focused="true" />
+    <item android:color="@color/on_surface_medium" />
+</selector>

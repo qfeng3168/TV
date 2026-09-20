@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.databinding.AdapterEpgDataBinding;
+import com.fongmi.android.tv.setting.Setting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class EpgDataAdapter extends RecyclerView.Adapter<EpgDataAdapter.ViewHold
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setLeftListener(mListener::hideEpg);
         holder.binding.getRoot().setOnClickListener(v -> {
-            if (!item.isFuture()) mListener.onItemClick(item);
+            if (!item.isFuture() && Setting.isEpgCatchup()) mListener.onItemClick(item);
         });
     }
 

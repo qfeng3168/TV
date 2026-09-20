@@ -13,6 +13,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.gson.ExtAdapter;
 import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -221,9 +222,9 @@ public class Live {
 
     public ZoneId getZoneId() {
         try {
-            return getTimeZone().isEmpty() ? ZoneId.systemDefault() : ZoneId.of(getTimeZone());
+            return getTimeZone().isEmpty() ? Setting.getEpgZoneId() : ZoneId.of(getTimeZone());
         } catch (Exception ignored) {
-            return ZoneId.systemDefault();
+            return Setting.getEpgZoneId();
         }
     }
 

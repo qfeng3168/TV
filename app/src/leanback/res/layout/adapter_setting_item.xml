@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置项通用行：名称 + 说明 + 当前值 + 箭头。
+     通过 <include android:id> 引入，ViewBinding 会为该 include 单独生成
+     AdapterSettingItemBinding，因此同一屏可以复用任意多份而 id 不冲突。 -->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/selector_setting_card"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:minHeight="76dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/kiwi_space_lg"
+    android:paddingEnd="@dimen/kiwi_space_lg"
+    android:paddingTop="@dimen/kiwi_space_sm"
+    android:paddingBottom="@dimen/kiwi_space_sm">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_high"
+            tools:text="播放内核" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_low"
+            tools:text="用于点播与本地文件的播放内核" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/kiwi_space_md"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/brand_primary"
+        tools:text="MPV" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/kiwi_space_md"
+        android:src="@drawable/ic_setting_arrow" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

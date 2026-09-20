@@ -277,6 +277,54 @@
     <string name="setting_off">關</string>
     <string name="setting_on">開</string>
 
+    <!-- 设置页分类导航与新增设置项 -->
+    <string name="setting_title">設定</string>
+    <string name="setting_decode">解碼設定</string>
+    <string name="setting_crumb">系統設定 › %1$s</string>
+    <string name="setting_tab_common">通用設定</string>
+    <string name="setting_tab_player">播放設定</string>
+    <string name="setting_tab_decode">解碼設定</string>
+    <string name="setting_tab_vod">點播設定</string>
+    <string name="setting_tab_live">直播設定</string>
+    <string name="setting_tab_epg">EPG 設定</string>
+    <string name="setting_tab_network">網路設定</string>
+    <string name="setting_tab_about">關於本機</string>
+
+    <string name="setting_engine">播放核心</string>
+    <string name="setting_engine_desc">用於點播與本機檔案的播放核心</string>
+    <string name="setting_background">背景播放</string>
+    <string name="setting_background_desc">離開播放頁之後的播放行為</string>
+    <string name="setting_buffer">緩衝時長</string>
+    <string name="setting_buffer_desc">開始播放前預先緩衝的時長</string>
+    <string name="setting_buffer_second">%1$d 秒</string>
+    <string name="setting_preload">預載</string>
+    <string name="setting_preload_desc">播放時提前載入影片資料</string>
+    <string name="setting_preload_next">預載下一集</string>
+    <string name="setting_preload_next_desc">在本集播完前提前載入下一集</string>
+    <string name="setting_video_prefer">硬解優先</string>
+    <string name="setting_video_prefer_desc">優先使用硬解，失敗時自動降級軟解</string>
+    <string name="setting_tunnel">隧道模式</string>
+    <string name="setting_tunnel_desc">ExoPlayer 隧道渲染，部分 4K 設備更穩</string>
+    <string name="setting_live_boot">開機自動播放</string>
+    <string name="setting_live_boot_desc">啟動時自動播放上次觀看的頻道</string>
+    <string name="setting_live_change">上下鍵換台</string>
+    <string name="setting_live_change_desc">用遙控器上下鍵切換頻道</string>
+    <string name="setting_live_across">跨分組換台</string>
+    <string name="setting_live_across_desc">上下鍵可切換到下一個分組</string>
+    <string name="setting_live_invert">頻道倒序</string>
+    <string name="setting_live_invert_desc">反轉換台方向</string>
+    <string name="setting_live_scale">直播畫面比例</string>
+    <string name="setting_live_scale_desc">拉伸、裁切或保持原始比例</string>
+    <string name="setting_epg_span">節目單時間跨度</string>
+    <string name="setting_epg_span_desc">單一頻道顯示的節目單範圍</string>
+    <string name="setting_epg_span_hour">%1$d 小時</string>
+    <string name="setting_epg_past">顯示已播節目</string>
+    <string name="setting_epg_past_desc">在節目單中保留已結束的節目</string>
+    <string name="setting_epg_offset">時區偏移</string>
+    <string name="setting_epg_offset_desc">節目單時間校正，預設 +08:00</string>
+    <string name="setting_epg_catchup">回看與時移</string>
+    <string name="setting_epg_catchup_desc">啟用節目回看與時移入口</string>
+
     <!-- Backup & Restore -->
     <string name="restore_select">選擇備份</string>
     <string name="restore_success">還原成功</string>
@@ -411,6 +459,13 @@
         <item>4:3</item>
         <item>填充</item>
         <item>裁剪</item>
+    </string-array>
+
+    <!-- 后台播放三档，顺序对应 PlayerSetting 的 0 / 1 / 2 -->
+    <string-array name="select_background">
+        <item>關閉</item>
+        <item>背景播放</item>
+        <item>子母畫面</item>
     </string-array>
 
     <string-array name="audio_effect_stability_levels">
