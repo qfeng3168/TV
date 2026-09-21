@@ -97,7 +97,13 @@ public class EpgData {
     }
 
     public String getRange() {
-        return "clock=" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(getStartTime())) + "-" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(getEndTime()));
+        return getRange(0);
+    }
+
+    /** anchorMs：时移流的起点（落点墙钟毫秒）。0 = 用节目起点。要和 URL 上的 playseek 起止保持一致。 */
+    public String getRange(long anchorMs) {
+        long start = anchorMs > 0 && anchorMs < getEndTime() ? anchorMs : getStartTime();
+        return "clock=" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(start)) + "-" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(getEndTime()));
     }
 
     public void checkDay(ZoneId zoneId) {

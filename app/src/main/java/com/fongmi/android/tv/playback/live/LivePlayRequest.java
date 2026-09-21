@@ -14,28 +14,38 @@ public final class LivePlayRequest {
     private final EpgData data;
     private final String group;
     private final long position;
+    private final long shiftAnchor;
     private final int line;
     private final boolean shift;
 
-    private LivePlayRequest(@NonNull Channel channel, @Nullable EpgData data, long position, boolean shift) {
+    private LivePlayRequest(@NonNull Channel channel, @Nullable EpgData data, long position, boolean shift, long shiftAnchor) {
         this.channel = channel;
         this.data = data;
         this.group = channel.getGroup() == null ? "" : channel.getGroup().getName();
         this.position = position;
         this.line = channel.getIndex();
         this.shift = shift;
+        this.shiftAnchor = shiftAnchor;
     }
 
     public static LivePlayRequest live(@NonNull Channel channel, long position) {
-        return new LivePlayRequest(channel, null, position, false);
+        return new LivePlayRequest(channel, null, position, false, 0);
     }
 
     public static LivePlayRequest catchup(@NonNull Channel channel, @NonNull EpgData data, long position) {
-        return new LivePlayRequest(channel, data, position, false);
+        return new LivePlayRequest(channel, data, position, false, 0);
     }
 
     public static LivePlayRequest shift(@NonNull Channel channel, @NonNull EpgData data, long position) {
-        return new LivePlayRequest(channel, data, position, true);
+        return shift(channel, data, position, 0);
+    }
+
+    /**
+     * @param position 流内起播位置（毫秒）
+     * @param anchor   时移流起点对应的墙钟毫秒（写进 playseek 的 {b}），0 = 用节目起点
+     */
+    public static LivePlayRequest shift(@NonNull Channel channel, @NonNull EpgData data, long position, long anchor) {
+        return new LivePlayRequest(channel, data, position, true, anchor);
     }
 
     public Channel getChannel() {
@@ -52,6 +62,10 @@ public final class LivePlayRequest {
         return position;
     }
 
+    public long getShiftAnchor() {
+        return shiftAnchor;
+    }
+
     public boolean isCatchup() {
         return data != null;
     }
@@ -66,6 +80,6 @@ public final class LivePlayRequest {
     }
 
     public boolean matches(@Nullable LivePlayRequest request) {
-        return request != null && channel.equals(request.channel) && group.equals(request.group) && line == request.line && position == request.position && shift == request.shift && Objects.equals(data, request.data);
+        return request != null && channel.equals(request.channel) && group.equals(request.group) && line == request.line && position == request.position && shift == request.shift && shiftAnchor == request.shiftAnchor && Objects.equals(data, request.data);
     }
 }

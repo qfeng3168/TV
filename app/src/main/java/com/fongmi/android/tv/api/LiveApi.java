@@ -71,9 +71,15 @@ public class LiveApi {
 
     @NonNull
     public static Result getUrl(@NonNull Channel item, @NonNull EpgData data, boolean useShift) throws Exception {
+        return getUrl(item, data, useShift, 0);
+    }
+
+    /** anchorMs：时移流的起点（落点墙钟毫秒），0 = 用节目起点。见 Catchup#formatShift。 */
+    @NonNull
+    public static Result getUrl(@NonNull Channel item, @NonNull EpgData data, boolean useShift, long anchorMs) throws Exception {
         Result result = getUrl(item);
-        result.setUrl(useShift ? item.getCatchup().formatShift(result.getRealUrl(), data) : item.getCatchup().format(result.getRealUrl(), data));
-        if (item.isRtsp()) result.getHeader().put("rtsp_range", data.getRange());
+        result.setUrl(useShift ? item.getCatchup().formatShift(result.getRealUrl(), data, anchorMs) : item.getCatchup().format(result.getRealUrl(), data));
+        if (item.isRtsp()) result.getHeader().put("rtsp_range", data.getRange(anchorMs));
         return result;
     }
 

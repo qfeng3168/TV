@@ -103,6 +103,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private Channel mEpgChannel;
     private EpgData mCurrentEpg;
     private String mPlaybackKey;
+    /** 当前时移流的起点墙钟毫秒（= 上一次时移落点）；0 表示不在时移态。左右键位移以此为准。 */
+    private long mShiftAnchor;
     private int count;
 
     public static void start(Context context) {
@@ -688,6 +690,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         // 节目单可能开在「还没播放过」的频道上：先把分组位置同步到频道列的焦点行，再交给控制器切台/回放
         int position = mBinding.channel.getSelectedPosition();
         if (position >= 0) mGroup.setPosition(position);
+        // 这是「回看」线路（catchup-source），不是时移态 ⇒ 清掉时移锚点，
+        // 否则之后按左右键会误判成还在时移里，走「重建流」而不是流内位移。
+        mShiftAnchor = 0;
         mLive.selectEpg(target.group(mGroup), item, player().getPosition());
     }
 
@@ -833,6 +838,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     public void renderChannelSelection(Channel channel) {
         App.post(mR0, 100);
         mChannel = channel;
+        // 换台即退出时移：锚点必须清掉，否则新频道上按左右键会拿着上一台的墙钟基准去算落点
+        mShiftAnchor = 0;
         setArtwork();
         showInfo();
     }
@@ -868,6 +875,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         EpgData data = mCurrentEpg == null ? null : (mCurrentEpg.getTitle().isEmpty() ? null : mCurrentEpg);
         if (data == null) data = mChannel.getData(mViewModel.getZoneId()).getCurrent();
         if (data == null) return;
+        // 底部栏的时移入口：从该节目起点起播时移流 ⇒ 锚点 = 节目起点，
+        // 这样进去之后再按左右键，位移是接着这条流继续走，而不是从「现在」重算。
+        mShiftAnchor = data.getStartTime();
         mLive.selectShift(data, 0);
     }
 
@@ -886,6 +896,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mChannel = null;
         mGroup = null;
         mEpgChannel = null;
+        mShiftAnchor = 0;
     }
 
     @Override
@@ -979,6 +990,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void seek(long time) {
         mKeyDown.reset();
         seekTo(time);
+        // OSD 不能一直挂着：hideCenter() 原来只有 showProgress() 会调，而这个源上 RTSP
+        // 流内 seek 未必真的重新缓冲 ⇒ 前进/后退图标会永远留在屏幕上（用户实测）。
+        hideCenter();
     }
 
     /** 是否具备时移能力。时移走 shift-source 线路，和 EPG 点击的「回看」（catchup-source）是两条线，
@@ -987,16 +1001,25 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         return mChannel != null && mChannel.hasShift() && Setting.isEpgCatchup();
     }
 
-    /** 直播态按左进入时移：offset 是相对「现在」的位移（负 = 往回）。
-        直播流端点只能给出「现在」，所以把落点换算成墙钟时间去找对应节目，
-        再走时移线路定位到流内位置（position 从该节目起点算起）。 */
+    /** 时移位移：offset 是相对「当前看到的时刻」的位移（负 = 往回）。
+        这条源（HMS）的 shift-source 用 playseek：{b} 就是流的起点、npt 恒从 0 开始，
+        所以把落点直接写进 URL 重建流即可精准落点；该源的 RTSP 流内 seek 实测无效
+        （OSD 位置数字会变、画面不动），因此位移一律走重建流，不用 seek。 */
     private void shiftTo(long offset) {
         mKeyDown.reset();
-        if (!canShift()) return;
-        long target = System.currentTimeMillis() + offset;
+        // 松手即收起落点 OSD。放在最前面是为了「无论跳转成不成功都收」——原先只在成功分支外
+        // 的 seek() 里收，时移这条链根本走不到，于是前进/后退图标会一直挂在画面上（用户实测）。
+        hideCenter();
+        if (!canShift() || mChannel == null) return;
+        long now = System.currentTimeMillis();
+        // 基准 = 当前看到的墙钟时刻：直播态就是现在；时移态 = 流起点墙钟 + 流内已播位置
+        long base = player().isLive() || mShiftAnchor <= 0 ? now : mShiftAnchor + Math.max(0, player().getPosition());
+        long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
+        if (target <= 0) return;
         EpgData data = mChannel.getData(mViewModel.getZoneId()).findByTime(target);
         if (data == null) return;
-        mLive.shiftTo(data, Math.max(0, target - data.getStartTime()));
+        mShiftAnchor = target;
+        mLive.shiftTo(data, 0, target);
     }
 
     private void onPaused() {
@@ -1052,6 +1075,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
             mBinding.widget.center.setVisibility(View.VISIBLE);
             mBinding.widget.position.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now + time)));
             mBinding.widget.duration.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now)));
+        } else if (mShiftAnchor > 0) {
+            // 已在时移态：这条源的时移流是「按落点重建」的（position 恒从 0 起），
+            // 流内 seek 无效，所以 OSD 也按墙钟显示落点，而不是流内相对位置。
+            long now = System.currentTimeMillis();
+            long base = mShiftAnchor + Math.max(0, player().getPosition());
+            mBinding.widget.center.setVisibility(View.VISIBLE);
+            mBinding.widget.position.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(base + time)));
+            mBinding.widget.duration.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now)));
         } else {
             mBinding.widget.center.setVisibility(View.VISIBLE);
             mBinding.widget.duration.setText(player().getDurationTime());
@@ -1079,12 +1110,16 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
             // 直播态按左 = 进入时移（shift-source 线路）。没有时移能力的频道维持原来的「上一条线路」。
             if (canShift() && time < 0) shiftTo(time);
             else prevLine();
+        } else if (mShiftAnchor > 0) {
+            // 已在时移态：继续用「重建流」的方式位移（这条源的流内 seek 无效，见 shiftTo 注释）
+            shiftTo(time);
         } else App.post(() -> seek(time), 250);
     }
 
     @Override
     public void onKeyRight(long time) {
         if (player().isLive()) nextLine(true);
+        else if (mShiftAnchor > 0) shiftTo(time);
         else App.post(() -> seek(time), 250);
     }
 

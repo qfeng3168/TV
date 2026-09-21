@@ -139,9 +139,20 @@ public class Catchup {
     }
 
     public String formatShift(String url, EpgData data) {
+        return formatShift(url, data, 0);
+    }
+
+    /**
+     * 时移流。HMS 中间件把 {b} 当作**流的起点**：流永远从 npt=0 开始，b 写几点，流的第 0 秒就是几点
+     * （实测 playseek=15:10-16:00 → a=range:npt=0-3000，b 改成 14:30 就变 npt=0-5400）。
+     * 所以把「落点」直接写进 {b} 即可精准起播，不依赖播放器做流内 seek —— 这条源上的
+     * RTSP 流内 seek 实测无效（OSD 位置数字会变，画面不动）。
+     */
+    public String formatShift(String url, EpgData data, long anchorMs) {
+        long start = anchorMs > 0 && anchorMs < data.getEndTime() ? anchorMs : data.getStartTime();
         String result = getShiftSource();
         Matcher matcher = TOKEN_PATTERN.matcher(result);
-        while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), data.getStartTime(), data.getEndTime()));
+        while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), start, data.getEndTime()));
         return isDefault() ? result : append(url, result);
     }
 
