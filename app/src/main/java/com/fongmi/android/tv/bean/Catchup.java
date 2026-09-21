@@ -151,7 +151,13 @@ public class Catchup {
      */
     public String formatShift(String url, EpgData data, long anchorMs) {
         long start = anchorMs > 0 && anchorMs < data.getEndTime() ? anchorMs : data.getStartTime();
-        String result = getShiftSource();
+        // m3u 的 shift-source 写的是 starttime，但这台 HMS 不实现 starttime：DESCRIBE 无视该参数，
+        // 返回 a=range:clock=0-（播放器 duration≈5s）—— 客户端起了新流，播的却仍是直播，
+        // 用户看到的就是「按了时移没反应」（2026-09-22 装机实证：starttime 起播后 dur=4915）。
+        // playseek 才返回 a=range:npt=0-N 的真回放窗（实测 npt=0-2580），而且 catchup-source
+        // 本来就是 playseek，时移与回看语义一致。所以在客户端把 starttime 规范化成 playseek，
+        // 不必改 m3u 也不必改服务端。
+        String result = getShiftSource().replace("starttime", "playseek");
         Matcher matcher = TOKEN_PATTERN.matcher(result);
         while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), start, data.getEndTime()));
         String out = isDefault() ? result : append(url, result);
