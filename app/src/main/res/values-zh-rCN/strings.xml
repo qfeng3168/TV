@@ -12,6 +12,7 @@
     <string name="live_epg_hint">向右查看节目单</string>
     <string name="epg_catchup">回放</string>
     <string name="epg_reserve">预约</string>
+    <string name="epg_today">今天</string>
 
     <!-- Detail -->
     <string name="detail_title"><xliff:g name="name">%s</xliff:g>：<xliff:g name="name">%s</xliff:g></string>

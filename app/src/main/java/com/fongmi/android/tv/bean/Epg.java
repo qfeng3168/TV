@@ -134,6 +134,18 @@ public class Epg {
         return before;
     }
 
+    /** 日期条选中某天后的节目单。过去的日期忽略「隐藏已播节目」设置——
+        用户明确翻到那天就是要回看，再按设置过滤就会得到一张空节目单。 */
+    public List<EpgData> filterSelected(boolean isToday) {
+        if (isToday) return filter();
+        long limit = System.currentTimeMillis() + Setting.getEpgSpanMillis();
+        List<EpgData> items = new ArrayList<>();
+        for (EpgData item : getList()) {
+            if (item.getEndTime() == 0 || item.getStartTime() <= limit) items.add(item);
+        }
+        return items;
+    }
+
     public Epg selected() {
         for (EpgData item : getList()) item.setSelected(item.isInRange());
         return this;

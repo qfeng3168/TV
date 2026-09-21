@@ -77,16 +77,36 @@
             tools:itemCount="5"
             tools:listitem="@layout/adapter_channel" />
 
-        <com.fongmi.android.tv.ui.custom.CustomLiveListView
-            android:id="@+id/epgData"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/epgWrap"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:padding="12dp"
+            android:orientation="vertical"
             android:visibility="gone"
-            tools:itemCount="5"
-            tools:listitem="@layout/adapter_epg_data" />
+            tools:visibility="visible">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/epgDates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="12dp"
+                tools:listitem="@layout/adapter_epg_date" />
+
+            <com.fongmi.android.tv.ui.custom.CustomLiveListView
+                android:id="@+id/epgData"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:padding="12dp"
+                tools:itemCount="5"
+                tools:listitem="@layout/adapter_epg_data" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/epgHint"
             android:layout_width="18dp"

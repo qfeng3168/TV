@@ -19,6 +19,7 @@ import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
 import androidx.media3.ui.PlayerSeekView;
 import androidx.media3.ui.PlayerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -56,6 +57,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
+import com.fongmi.android.tv.ui.adapter.EpgDateAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.CustomLiveListView;
@@ -76,12 +78,15 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, PassListener, ConfigListener, LiveListener, LivePlaybackHost {
+public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, EpgDateAdapter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, PassListener, ConfigListener, LiveListener, LivePlaybackHost {
 
     private ActivityLiveBinding mBinding;
     private LiveViewModel mViewModel;
@@ -89,6 +94,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private GroupAdapter mGroupAdapter;
     private ChannelAdapter mChannelAdapter;
     private EpgDataAdapter mEpgDataAdapter;
+    private EpgDateAdapter mEpgDateAdapter;
     private CustomKeyDownLive mKeyDown;
     private Clock mClock;
     private View mOldView;
@@ -103,6 +109,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private Channel mChannel;
     private Channel mEpgChannel;
     private EpgData mCurrentEpg;
+    /** 节目单当前选中的日期（yyyy-MM-dd）。null = 尚未选择（打开节目单时初始化）。 */
+    private String mEpgDate;
     private String mPlaybackKey;
     /** 当前时移流的起点墙钟毫秒（= 上一次时移落点）；0 表示不在时移态。左右键位移以此为准。 */
     private long mShiftAnchor;
@@ -215,6 +223,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.group.setAdapter(mGroupAdapter = new GroupAdapter(this));
         mBinding.channel.setAdapter(mChannelAdapter = new ChannelAdapter(this));
         mBinding.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
+        // 节目单顶部的日期条：横向一行 chip；节目单第一条上按「上」要能升到日期条
+        mBinding.epgDates.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        mBinding.epgDates.setAdapter(mEpgDateAdapter = new EpgDateAdapter(this));
+        mBinding.epgDates.setItemAnimator(null);
+        mBinding.epgData.setBreakOutUp(true);
     }
 
     private void setVideoView() {
@@ -315,14 +328,24 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setWidth(Epg epg) {
+        setWidth(Collections.singletonList(epg));
+    }
+
+    /** 节目单列宽 = 所有日期里最长的节目文本，切换日期时列宽不跳动。 */
+    private void setWidth(List<Epg> days) {
         int padding = ResUtil.dp2px(84);
-        if (epg.getList().isEmpty()) return;
-        int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 14);
-        if (epg.getWidth() == 0) for (EpgData item : epg.getList()) epg.setWidth(Math.max(epg.getWidth(), ResUtil.getTextWidth(item.getTitle(), 16)));
+        int minWidth = 0;
+        int maxTitle = 0;
+        for (Epg day : days) {
+            if (day.getList().isEmpty()) continue;
+            minWidth = Math.max(minWidth, ResUtil.getTextWidth(day.getList().get(0).getTime(), 14));
+            for (EpgData item : day.getList()) maxTitle = Math.max(maxTitle, ResUtil.getTextWidth(item.getTitle(), 16));
+        }
+        if (maxTitle == 0) return;
         int maxWidth = ResUtil.getScreenWidth() / 2;
         int minContentWidth = Math.min(minWidth + padding, maxWidth);
-        int width = epg.getWidth() == 0 ? 0 : Math.clamp(epg.getWidth() + padding, minContentWidth, maxWidth);
-        setWidth(mBinding.epgData, width);
+        int width = Math.clamp(maxTitle + padding, minContentWidth, maxWidth);
+        setWidth(mBinding.epgWrap, width);
     }
 
     private void setWidth(View view, int width) {
@@ -535,27 +558,91 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void showEpg(Channel item) {
         if (item == null) return;
-        Epg epg = item.getData(mViewModel.getZoneId());
-        List<EpgData> items = epg.filter();
+        // 日期条：这个频道所有有节目的日期（批量 XML 一次给 8 天；单频道 {date} 通道给 ±1 天）
+        List<Epg> days = new ArrayList<>(item.getDataList());
+        days.removeIf(epg -> epg.getList().isEmpty());
+        days.sort(Comparator.comparing(Epg::getDate));
+        if (days.isEmpty()) return;
+        Epg day = pickDay(days);
+        List<EpgData> items = day.filterSelected(day.getDate().equals(today()));
         if (items.isEmpty()) return;
-        EpgData current = epg.getCurrent();
         mEpgChannel = item;
+        mEpgDate = day.getDate();
+        mEpgDateAdapter.addAll(days, mEpgDate);
         mEpgDataAdapter.addAll(items);
-        if (current != null) mEpgDataAdapter.setSelected(current);
-        mBinding.epgData.setSelectedPosition(current == null ? 0 : Math.max(items.indexOf(current), 0));
+        focusDay(day, items);
         // 仿电视家：右键呼出节目单时隐藏分组列、保留频道列，节目单贴在频道单右侧
-        mBinding.epgData.setVisibility(View.VISIBLE);
+        mBinding.epgWrap.setVisibility(View.VISIBLE);
         mBinding.group.setVisibility(View.GONE);
         mBinding.epgHint.setVisibility(View.GONE);
         mBinding.epgData.requestFocus();
-        setWidth(epg);
+        setWidth(days);
+    }
+
+    /** 选定某天后列表落在哪：当前正在播的那条；过去一天没有在播的就落第一条。 */
+    private void focusDay(Epg day, List<EpgData> items) {
+        EpgData current = day.getCurrent();
+        if (current != null) {
+            mEpgDataAdapter.setSelected(current);
+            mBinding.epgData.setSelectedPosition(Math.max(items.indexOf(current), 0));
+        } else {
+            mBinding.epgData.setSelectedPosition(0);
+        }
+    }
+
+    /** 打开节目单时默认落在哪一天：今天；没有今天取今天之前最近的一天；再没有取第一天。 */
+    private Epg pickDay(List<Epg> days) {
+        String today = today();
+        for (Epg day : days) if (day.getDate().equals(today)) return day;
+        Epg before = null;
+        for (Epg day : days) {
+            if (day.getDate().compareTo(today) >= 0) continue;
+            if (before == null || day.getDate().compareTo(before.getDate()) > 0) before = day;
+        }
+        if (before != null) return before;
+        Epg next = null;
+        for (Epg day : days) {
+            if (next == null || day.getDate().compareTo(next.getDate()) < 0) next = day;
+        }
+        return next;
+    }
+
+    private String today() {
+        return LocalDate.now(mViewModel.getZoneId()).format(Formatters.DATE);
+    }
+
+    @Override
+    public void onDatePick(Epg day) {
+        List<EpgData> items = day.filterSelected(day.getDate().equals(today()));
+        if (items.isEmpty() || mEpgChannel == null) return;
+        mEpgDate = day.getDate();
+        mEpgDateAdapter.setSelected(mEpgDate);
+        mEpgDataAdapter.addAll(items);
+        focusDay(day, items);
+    }
+
+    @Override
+    public void onEdgeLeft() {
+        // 日期条第一个 chip 上按左键 = 焦点回频道列，节目单保持打开（与 hideEpg 的「整个关掉」区分）
+        mBinding.channel.requestFocus();
+    }
+
+    @Override
+    public RecyclerView getRecycler() {
+        return mBinding.epgDates;
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     @Override
     public void hideEpg() {
         mEpgChannel = null;
+        mEpgDate = null;
         mBinding.group.setVisibility(View.VISIBLE);
-        mBinding.epgData.setVisibility(View.GONE);
+        mBinding.epgWrap.setVisibility(View.GONE);
         mBinding.epgHint.setVisibility(View.VISIBLE);
         mBinding.channel.requestFocus();
     }
@@ -733,10 +820,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         EpgData data = epg.getEpgData();
         mCurrentEpg = data;
         boolean hasTitle = !data.getTitle().isEmpty();
-        // 节目单列正开在别的频道上时，别被「正在播频道」的回调覆盖掉
-        if (mEpgChannel == null || mEpgChannel.equals(mChannel)) {
+        // 节目单列正开在别的频道上时，别被「正在播频道」的回调覆盖掉；
+        // 面板开在当前频道但用户翻到了别的日期，也别把列表拽回今天
+        if (mEpgChannel == null) {
             mEpgDataAdapter.addAll(epg.filter());
             setWidth(epg);
+        } else if (mEpgChannel.equals(mChannel) && today().equals(mEpgDate)) {
+            mEpgDataAdapter.addAll(epg.filter());
+            if (data != null) mEpgDataAdapter.setSelected(data);
         }
         mBinding.widget.name.setMaxEms(hasTitle ? 12 : 48);
         mBinding.widget.play.setText(data.format());
@@ -1028,9 +1119,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
         long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
         if (target <= 0) return;
-        EpgData data = mChannel.getData(mViewModel.getZoneId()).findByTime(target);
+        Epg epg = mChannel.getData(mViewModel.getZoneId());
+        EpgData data = epg.findByTime(target);
         Log.i("KSHIFT", "shiftTo offset=" + offset + " base=" + base + " target=" + target
-                + " isLive=" + player().isLive() + " data=" + (data == null ? "null" : data.getTitle()));
+                + " isLive=" + player().isLive() + " epgSize=" + epg.getList().size()
+                + " epgFirst=" + (epg.getList().isEmpty() ? "-" : epg.getList().get(0).getStartTime() + "~" + epg.getList().get(0).getEndTime())
+                + " epgLast=" + (epg.getList().isEmpty() ? "-" : epg.getList().get(epg.getList().size() - 1).getStartTime() + "~" + epg.getList().get(epg.getList().size() - 1).getEndTime())
+                + " data=" + (data == null ? "null" : data.getTitle() + " " + data.getStartTime() + "~" + data.getEndTime()));
         if (data == null) return;
         mShiftAnchor = target;
         mLive.shiftTo(data, 0, target);
