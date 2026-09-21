@@ -91,6 +91,7 @@ public class EpgParser {
             if (Path.exists(backup)) Path.clear(backup);
         }
         boolean gzip = isGzip(file);
+        Log.i(TAG, "downloaded file=" + file.getName() + " size=" + file.length() + " gzip=" + gzip + " elapsed=" + (System.currentTimeMillis() - t0) + "ms");
         if (gzip) readGzip(live, file, true);
         else readXml(live, file);
         Log.i(TAG, "start done elapsed=" + (System.currentTimeMillis() - t0) + "ms");

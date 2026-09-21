@@ -9,7 +9,10 @@ public class Constant {
     public static final long TIMEOUT_VOD = TimeUnit.SECONDS.toMillis(30);
     public static final long TIMEOUT_LIVE = TimeUnit.SECONDS.toMillis(30);
     public static final long TIMEOUT_EPG = TimeUnit.SECONDS.toMillis(30);
-    public static final long TIMEOUT_XML = TimeUnit.SECONDS.toMillis(15);
+    // 节目单 XML 动辄数 MB，且是落盘缓存的后台任务，不是用户可见的交互操作。
+    // 15s 会在慢网下必然超时：Guava withTimeout 超时会 interrupt 掉下载线程，
+    // Download.checkCanceled 抛异常后还会把已下载的文件删掉，下次又从头下。
+    public static final long TIMEOUT_XML = TimeUnit.SECONDS.toMillis(60);
     public static final long TIMEOUT_PLAY = TimeUnit.SECONDS.toMillis(15);
     public static final long TIMEOUT_SYNC = TimeUnit.SECONDS.toMillis(2);
     public static final long TIMEOUT_SEARCH = TimeUnit.SECONDS.toMillis(30);
