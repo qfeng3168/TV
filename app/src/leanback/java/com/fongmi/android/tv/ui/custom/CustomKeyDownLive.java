@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -46,6 +47,8 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
     public void onKeyDown(KeyEvent event) {
         if (listener.dispatch(true)) check(event);
+        else Log.i("KSHIFT", "keyevent drop dispatch=false action=" + event.getAction()
+                + " code=" + event.getKeyCode());
     }
 
     private void check(KeyEvent event) {
@@ -58,8 +61,10 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
         } else if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event)) {
             listener.onKeyDown();
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isLeftKey(event)) {
+            Log.i("KSHIFT", "keyevent UP left holdTime=" + holdTime);
             listener.onKeyLeft(holdTime);
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isRightKey(event)) {
+            Log.i("KSHIFT", "keyevent UP right holdTime=" + holdTime);
             listener.onKeyRight(holdTime);
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isDigitKey(event)) {
             onKeyDown(event.getKeyCode());

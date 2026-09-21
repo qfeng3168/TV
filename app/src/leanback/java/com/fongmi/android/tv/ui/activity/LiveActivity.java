@@ -1127,7 +1127,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         // 松手即收起落点 OSD。放在最前面是为了「无论跳转成不成功都收」——原先只在成功分支外
         // 的 seek() 里收，时移这条链根本走不到，于是前进/后退图标会一直挂在画面上（用户实测）。
         hideCenter();
-        if (!canShift() || mChannel == null) return;
+        if (!canShift() || mChannel == null) {
+            Log.i("KSHIFT", "shiftTo abort canShift=" + canShift() + " channel=" + (mChannel == null ? "null" : mChannel.getTitle()));
+            return;
+        }
         long now = System.currentTimeMillis();
         long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
         // 右键追平直播点 = 关闭时移，直接回直播（用户约定：关闭时移后返回直播）
@@ -1138,12 +1141,19 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
             return;
         }
         long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
-        if (target <= 0) return;
+        if (target <= 0) {
+            Log.i("KSHIFT", "shiftTo abort target<=0 base=" + base);
+            return;
+        }
         Epg epg = mChannel.getData(mViewModel.getZoneId());
         // 左边界：不早于当前节目的开始时间（直播的开始时间），越界收回到本节目开头
         EpgData current = mCurrentEpg != null && !mCurrentEpg.getTitle().isEmpty()
                 ? mCurrentEpg : epg.getCurrent();
-        if (current == null) return;
+        if (current == null) {
+            Log.i("KSHIFT", "shiftTo abort current==null epgSize=" + epg.getList().size()
+                    + " curTitle=" + (mCurrentEpg == null ? "null" : mCurrentEpg.getTitle()));
+            return;
+        }
         if (target < current.getStartTime()) target = current.getStartTime();
         EpgData data = epg.findByTime(target);
         Log.i("KSHIFT", "shiftTo offset=" + offset + " base=" + base + " target=" + target
@@ -1238,6 +1248,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         // 路由按「当前播放请求」而不是 player.isLive()：HMS 直播流起播约 5 秒后被 ExoPlayer
         // 翻成非直播（a=range:clock=0-），isLive 会把直播态误判成回放态，左键落进流内 seek
         // 分支（该源流内 seek 实测无效 = 按了没反应，装机两次复现）。
+        Log.i("KSHIFT", "onKeyLeft time=" + time + " isLiveReq=" + mLive.isLiveRequest()
+                + " canShift=" + canShift() + " anchor=" + mShiftAnchor
+                + " ch=" + (mChannel == null ? "null" : mChannel.getTitle()));
         if (mLive.isLiveRequest()) {
             // 直播态按左 = 进入时移（shift-source 线路）。没有时移能力的频道维持原来的「上一条线路」。
             if (canShift() && time < 0) shiftTo(time);
@@ -1250,6 +1263,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onKeyRight(long time) {
+        Log.i("KSHIFT", "onKeyRight time=" + time + " isLiveReq=" + mLive.isLiveRequest()
+                + " anchor=" + mShiftAnchor);
         if (mLive.isLiveRequest()) nextLine(true);
         else if (mShiftAnchor > 0) shiftTo(time);
         else App.post(() -> seek(time), 250);
