@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -813,7 +814,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void startPlayback(Result result, long position, MediaMetadata metadata) {
+        Log.i("KSHIFT", "startPlayback pos=" + position + " url=" + result.getRealUrl());
         startPlayer(mPlaybackKey = result.getRealUrl(), result, false, getHome().getTimeout(), position, metadata);
+        // 起播 5s 后回读「流」的真实状态：isLive/duration 能直接判定服务端给的是直播流还是时移/回放流，
+        // position 则说明播放器实际落在流内哪个位置。这三个数才是这件事的唯一客观判据。
+        App.post(this::logStreamState, 5000);
+    }
+
+    private void logStreamState() {
+        Log.i("KSHIFT", "after5s isLive=" + player().isLive() + " dur=" + player().getDuration()
+                + " pos=" + player().getPosition() + " anchor=" + mShiftAnchor
+                + " key=" + mPlaybackKey);
     }
 
     @Override
@@ -1012,11 +1023,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         hideCenter();
         if (!canShift() || mChannel == null) return;
         long now = System.currentTimeMillis();
-        // 基准 = 当前看到的墙钟时刻：直播态就是现在；时移态 = 流起点墙钟 + 流内已播位置
-        long base = player().isLive() || mShiftAnchor <= 0 ? now : mShiftAnchor + Math.max(0, player().getPosition());
+        // 基准 = 当前画面那一刻的墙钟。已在时移流里时用「流起点 + 流内已播位置」，
+        // 不能再依赖 isLive()：这条源的时移流被服务端标记成 live，但画面并不是实时。
+        long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
         long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
         if (target <= 0) return;
         EpgData data = mChannel.getData(mViewModel.getZoneId()).findByTime(target);
+        Log.i("KSHIFT", "shiftTo offset=" + offset + " base=" + base + " target=" + target
+                + " isLive=" + player().isLive() + " data=" + (data == null ? "null" : data.getTitle()));
         if (data == null) return;
         mShiftAnchor = target;
         mLive.shiftTo(data, 0, target);
@@ -1066,8 +1080,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onSeeking(long time) {
-        if (player().isLive()) {
-            // 直播态按左右键 = 准备进入时移。只有「频道支持时移」且「往回看」才给反馈，
+        Log.i("KSHIFT", "onSeeking time=" + time + " isLive=" + player().isLive()
+                + " pos=" + player().getPosition() + " dur=" + player().getDuration()
+                + " anchor=" + mShiftAnchor + " canShift=" + canShift());
+        if (player().isLive() && mShiftAnchor <= 0) {
+            // 纯直播态按左右键 = 准备进入时移。只有「频道支持时移」且「往回看」才给反馈，
             // 否则左键还是原来的上一条线路。直播流没有可 seek 的时间轴，position/duration
             // 在直播态取不到值，这里按墙钟把落点显示出来。
             if (!canShift() || time >= 0) return;
@@ -1075,15 +1092,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
             mBinding.widget.center.setVisibility(View.VISIBLE);
             mBinding.widget.position.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now + time)));
             mBinding.widget.duration.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now)));
-        } else if (mShiftAnchor > 0) {
-            // 已在时移态：这条源的时移流是「按落点重建」的（position 恒从 0 起），
-            // 流内 seek 无效，所以 OSD 也按墙钟显示落点，而不是流内相对位置。
-            long now = System.currentTimeMillis();
-            long base = mShiftAnchor + Math.max(0, player().getPosition());
-            mBinding.widget.center.setVisibility(View.VISIBLE);
-            mBinding.widget.position.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(base + time)));
-            mBinding.widget.duration.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now)));
         } else {
+            // 时移 / 回放态：显示流内进度。duration 就是服务端给的这条流的总长
+            // （时移流若被服务端当直播返回，这里会看到 dur=0，一眼能分辨）。
             mBinding.widget.center.setVisibility(View.VISIBLE);
             mBinding.widget.duration.setText(player().getDurationTime());
             mBinding.widget.position.setText(player().getPositionTime(time));

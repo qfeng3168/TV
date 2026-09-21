@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -153,7 +154,11 @@ public class Catchup {
         String result = getShiftSource();
         Matcher matcher = TOKEN_PATTERN.matcher(result);
         while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), start, data.getEndTime()));
-        return isDefault() ? result : append(url, result);
+        String out = isDefault() ? result : append(url, result);
+        Log.i("KSHIFT", "formatShift type=" + getType() + " default=" + isDefault()
+                + " tmpl=" + getShiftSource() + " anchor=" + anchorMs
+                + " start=" + start + " end=" + data.getEndTime() + " -> " + out);
+        return out;
     }
 
     private String formatTime(long millis, String fmt) {

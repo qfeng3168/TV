@@ -80,6 +80,8 @@ public class LiveApi {
         Result result = getUrl(item);
         result.setUrl(useShift ? item.getCatchup().formatShift(result.getRealUrl(), data, anchorMs) : item.getCatchup().format(result.getRealUrl(), data));
         if (item.isRtsp()) result.getHeader().put("rtsp_range", data.getRange(anchorMs));
+        Log.i(TAG, "KSHIFT getUrl shift=" + useShift + " anchor=" + anchorMs + " rtsp=" + item.isRtsp()
+                + " url=" + result.getRealUrl() + " range=" + result.getHeader().get("rtsp_range"));
         return result;
     }
 

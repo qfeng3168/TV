@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.playback.live;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
@@ -124,6 +125,8 @@ public class LivePlaybackController {
 
     private void startResolvedPlayback(Result result, LivePlayRequest request, String realUrl) {
         long position = result.hasPosition() ? result.getPosition() : request.getPosition();
+        Log.i("KSHIFT", "startResolved shift=" + request.isShift() + " anchor=" + request.getShiftAnchor()
+                + " pos=" + position + " url=" + realUrl);
         state.setPlayingRequest(request, realUrl);
         host.startPlayback(result, position, publishPlaybackMetadata(getEpgData(request)));
     }
