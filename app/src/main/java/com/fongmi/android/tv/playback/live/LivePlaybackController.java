@@ -101,9 +101,10 @@ public class LivePlaybackController {
 
     /** 时移跳转（直播态左右键专用）：这条是「时移」线路，跟 EPG 点击的「回看」是两条线。
         回看走 catchup-source、一条节目一个固定起止；时移走 shift-source。
-        anchorMs = 时移流的起点墙钟毫秒，会被写进 shift-source 的 {b}：这条源（HMS）的
-        playseek 以 {b} 作为流起点、npt 恒从 0 开始，把落点写在 URL 上就能精准起播，
-        不依赖流内 seek（该源实测 RTSP 流内 seek 无效）。 */
+        anchorMs = 时移流的起点墙钟毫秒，会被写进 shift-source 的 {b}。注意模板参数必须是
+        playseek：HMS 服务端把 {b} 当流起点（npt 恒从 0 开始），starttime 参数不实现
+        （2026-09-22 DESCRIBE 实证：starttime 返回 s=live，playseek 才返回 s=vod）。
+        把落点写在 URL 上就能精准起播，不依赖流内 seek（该源实测 RTSP 流内 seek 无效）。 */
     public boolean shiftTo(EpgData data, long positionMs, long anchorMs) {
         Channel channel = state.getChannel();
         if (channel == null || data == null) return false;
