@@ -3,10 +3,10 @@ package com.fongmi.android.tv.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.bean.Channel;
@@ -102,7 +102,9 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         long span = current.getEndTime() - current.getStartTime();
         float fraction = span <= 0 ? 0 : (System.currentTimeMillis() - current.getStartTime()) / (float) span;
         fraction = Math.max(0f, Math.min(1f, fraction));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, fraction);
+        // 注意：父容器是 appcompat 的 LinearLayoutCompat，子 View 必须用同族 LayoutParams，
+        // 塞 android.widget.LinearLayout$LayoutParams 会在 measure 时 ClassCastException。
+        LinearLayoutCompat.LayoutParams params = new LinearLayoutCompat.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, fraction);
         holder.binding.progressBar.setLayoutParams(params);
     }
 
