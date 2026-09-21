@@ -98,6 +98,14 @@ public class Epg {
         return new EpgData();
     }
 
+    /** 当前正在播的那条；一天刚开始还没进区间时退而求其次用最近一条未播的。
+        频道列表要在这儿取标题，不能依赖 selected —— 批量解析通道不会走 selected()。 */
+    public EpgData getCurrent() {
+        for (EpgData item : getList()) if (item.isInRange()) return item;
+        for (EpgData item : getList()) if (item.isFuture()) return item;
+        return null;
+    }
+
     /** 按 EPG 设置裁剪节目单：过滤掉已播完的节目，以及超出时间跨度的未来节目。
         没有时间信息的条目直接保留，避免整条节目单被清空。 */
     public List<EpgData> filter() {

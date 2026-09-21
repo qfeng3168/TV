@@ -259,6 +259,12 @@ public class Channel {
         return dataList.stream().filter(e -> e.equal(today)).findFirst().orElse(new Epg());
     }
 
+    /** 频道列表里贴在频道名下面的「正在播什么」，没有节目单就返回空串。 */
+    public String getPlaying(ZoneId zoneId) {
+        EpgData data = getData(zoneId).getCurrent();
+        return data == null ? "" : data.getTitle();
+    }
+
     public List<Epg> getDataList() {
         return dataList == null ? Collections.emptyList() : dataList;
     }

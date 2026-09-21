@@ -242,6 +242,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void onLiveParsed(Live live) {
+        mChannelAdapter.setZoneId(live.getZoneId());
         mViewModel.parseXml(live);
         setGroup(live);
         setWidth(live);
@@ -717,7 +718,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void onXmlParsed(boolean success) {
-        if (mChannel != null && success) mViewModel.getEpg(mChannel);
+        if (!success) return;
+        mChannelAdapter.refresh();
+        if (mChannel != null) mViewModel.getEpg(mChannel);
     }
 
     private void stopPlayer() {

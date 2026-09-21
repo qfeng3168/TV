@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -10,6 +11,7 @@ import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.databinding.AdapterChannelBinding;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,10 +19,19 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     private final OnClickListener mListener;
     private final List<Channel> mItems;
+    private ZoneId zoneId;
 
     public ChannelAdapter(OnClickListener listener) {
         mListener = listener;
         mItems = new ArrayList<>();
+        zoneId = ZoneId.systemDefault();
+    }
+
+    /** 节目单按直播源自己的时区算，频道行上的「正在播」必须跟着一起走。 */
+    public void setZoneId(ZoneId zoneId) {
+        if (zoneId == null) return;
+        this.zoneId = zoneId;
+        notifyDataSetChanged();
     }
 
     public void addAll(List<Channel> items) {
@@ -50,6 +61,11 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    /** 节目单是异步解析的，解析完要重画一遍频道行才能把「正在播」带出来。 */
+    public void refresh() {
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();
@@ -64,9 +80,12 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Channel item = mItems.get(position);
+        String playing = item.getPlaying(zoneId);
         item.loadLogo(holder.binding.logo);
         holder.binding.name.setText(item.getShow());
         holder.binding.number.setText(item.getNumber());
+        holder.binding.playing.setText(playing);
+        holder.binding.playing.setVisibility(playing.isEmpty() ? View.GONE : View.VISIBLE);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));

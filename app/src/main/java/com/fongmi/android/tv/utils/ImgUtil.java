@@ -80,7 +80,9 @@ public class ImgUtil {
 
     public static void load(String text, String url, ImageView view, boolean vod) {
         view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
-        if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
+        // 频道行（vod=false）的 logo 位永远可见：有图就加载，没图/已失败就显示文字色块（频道名首字）。
+        // 原来空 URL 会把 view 设成 GONE，导致无 logo 频道的色块也看不见。
+        if (!vod) view.setVisibility(View.VISIBLE);
         if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
         else try {
             RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).listener(getListener(text, url, view, vod));

@@ -25,13 +25,32 @@
         android:layout_marginEnd="12dp"
         android:visibility="gone" />
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/name"
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        android:textColor="@color/text"
-        tools:text="CNN" />
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textColor="@color/text"
+            tools:text="CNN" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.CardSub" android:id="@+id/playing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/on_surface_medium"
+            android:visibility="gone"
+            tools:text="新闻联播"
+            tools:visibility="visible" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>
