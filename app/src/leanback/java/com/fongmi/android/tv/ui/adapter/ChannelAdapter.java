@@ -3,12 +3,14 @@ package com.fongmi.android.tv.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.databinding.AdapterChannelBinding;
 
 import java.time.ZoneId;
