@@ -81,30 +81,32 @@
             android:id="@+id/epgWrap"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:visibility="gone"
             tools:visibility="visible">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/epgDates"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:paddingHorizontal="12dp"
-                android:paddingTop="12dp"
-                tools:listitem="@layout/adapter_epg_date" />
-
             <com.fongmi.android.tv.ui.custom.CustomLiveListView
                 android:id="@+id/epgData"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:padding="12dp"
                 tools:itemCount="5"
                 tools:listitem="@layout/adapter_epg_data" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/epgDates"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingStart="4dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="12dp"
+                tools:listitem="@layout/adapter_epg_date" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 

@@ -1,16 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Kiwi.Text.Caption"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="8dp"
     android:background="@drawable/selector_epg_date"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:gravity="center"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="6dp"
-    android:singleLine="true"
-    android:textColor="@color/selector_epg_date_text"
-    tools:text="09-22" />
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="7dp">
+
+    <com.google.android.material.textview.MaterialTextView
+        style="@style/Kiwi.Text.Caption"
+        android:id="@+id/dateWeek"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:textColor="@color/selector_epg_date_text"
+        tools:text="今天" />
+
+    <com.google.android.material.textview.MaterialTextView
+        style="@style/Kiwi.Text.Body"
+        android:id="@+id/dateValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:textColor="@color/selector_epg_date_text"
+        tools:text="09-22" />
+
+</LinearLayout>

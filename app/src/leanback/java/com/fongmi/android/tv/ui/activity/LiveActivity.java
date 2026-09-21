@@ -223,11 +223,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.group.setAdapter(mGroupAdapter = new GroupAdapter(this));
         mBinding.channel.setAdapter(mChannelAdapter = new ChannelAdapter(this));
         mBinding.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
-        // 节目单顶部的日期条：横向一行 chip；节目单第一条上按「上」要能升到日期条
-        mBinding.epgDates.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // 仿电视家：节目单右侧的竖排日期列；节目单行上按「右」经默认焦点搜索进入日期列
+        mBinding.epgDates.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         mBinding.epgDates.setAdapter(mEpgDateAdapter = new EpgDateAdapter(this));
         mBinding.epgDates.setItemAnimator(null);
-        mBinding.epgData.setBreakOutUp(true);
     }
 
     private void setVideoView() {
@@ -331,7 +330,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         setWidth(Collections.singletonList(epg));
     }
 
-    /** 节目单列宽 = 所有日期里最长的节目文本，切换日期时列宽不跳动。 */
+    /** 节目单列宽 = 所有日期里最长的节目文本 + 日期列，切换日期时列宽不跳动。 */
     private void setWidth(List<Epg> days) {
         int padding = ResUtil.dp2px(84);
         int minWidth = 0;
@@ -345,7 +344,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         int maxWidth = ResUtil.getScreenWidth() / 2;
         int minContentWidth = Math.min(minWidth + padding, maxWidth);
         int width = Math.clamp(maxTitle + padding, minContentWidth, maxWidth);
-        setWidth(mBinding.epgWrap, width);
+        setWidth(mBinding.epgWrap, width + ResUtil.dp2px(76));
     }
 
     private void setWidth(View view, int width) {
@@ -570,6 +569,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mEpgDate = day.getDate();
         mEpgDateAdapter.addAll(days, mEpgDate);
         mEpgDataAdapter.addAll(items);
+        mBinding.epgDates.post(() -> mBinding.epgDates.scrollToPosition(mEpgDateAdapter.getPosition(mEpgDate)));
         focusDay(day, items);
         // 仿电视家：右键呼出节目单时隐藏分组列、保留频道列，节目单贴在频道单右侧
         mBinding.epgWrap.setVisibility(View.VISIBLE);
@@ -623,8 +623,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onEdgeLeft() {
-        // 日期条第一个 chip 上按左键 = 焦点回频道列，节目单保持打开（与 hideEpg 的「整个关掉」区分）
-        mBinding.channel.requestFocus();
+        // 日期列上按左键 = 焦点回节目单列（电视家同向：节目单右键进日期列，左键退回）；
+        // 再按左会经默认焦点搜索落到频道列，BACK 整个关掉节目单
+        mBinding.epgData.requestFocus();
     }
 
     @Override

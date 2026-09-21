@@ -14,12 +14,14 @@ import com.fongmi.android.tv.databinding.AdapterEpgDateBinding;
 import com.fongmi.android.tv.utils.Formatters;
 
 import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-/** 节目单顶部的日期条：一行 chip，每个 chip 是一个有节目数据的日期。
-    左右键在 chip 间移动（到右边缘环绕回第一个），OK 切换节目单到该日期，
-    第一个 chip 上按左键交给宿主（焦点回频道列）。 */
+/** 仿电视家：节目单右侧的竖排日期列，每项两行「周X + MM-dd」。
+    上下键在日期间移动（首尾环绕），OK 切换节目单到该日期，
+    日期上按左键交给宿主（焦点回节目单列）。 */
 public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
@@ -44,6 +46,11 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    public int getPosition(String date) {
+        for (int i = 0; i < mItems.size(); i++) if (mItems.get(i).getDate().equals(date)) return i;
+        return 0;
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();
@@ -58,7 +65,8 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Epg item = mItems.get(position);
-        holder.binding.getRoot().setText(getLabel(item.getDate()));
+        holder.binding.dateWeek.setText(getWeekLabel(item.getDate()));
+        holder.binding.dateValue.setText(getDateLabel(item.getDate()));
         holder.binding.getRoot().setSelected(item.getDate().equals(mSelected));
         holder.binding.getRoot().setOnClickListener(v -> {
             mListener.onDatePick(item);
@@ -73,25 +81,38 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
         });
         holder.binding.getRoot().setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && position == 0) {
+            // 日期列不挂在 CustomLiveListView 上，交互要自己续面板的自动隐藏计时器
+            mListener.setUITimer();
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 mListener.onEdgeLeft();
                 return true;
             }
-            if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && position == mItems.size() - 1) {
-                mListener.getRecycler().scrollToPosition(0);
-                mListener.getRecycler().post(() -> {
-                    RecyclerView.ViewHolder first = mListener.getRecycler().findViewHolderForAdapterPosition(0);
-                    if (first != null) first.itemView.requestFocus();
-                });
-                return true;
-            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && position == 0) return wrap(mItems.size() - 1);
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && position == mItems.size() - 1) return wrap(0);
             return false;
         });
     }
 
-    private String getLabel(String date) {
-        String today = LocalDate.now().format(Formatters.DATE);
-        if (date.equals(today)) return mListener.getContext().getString(R.string.epg_today);
+    /** 首尾环绕：滚到另一端并把焦点放过去。 */
+    private boolean wrap(int position) {
+        RecyclerView recycler = mListener.getRecycler();
+        recycler.scrollToPosition(position);
+        recycler.post(() -> {
+            RecyclerView.ViewHolder h = recycler.findViewHolderForAdapterPosition(position);
+            if (h != null) h.itemView.requestFocus();
+        });
+        return true;
+    }
+
+    private String getWeekLabel(String date) {
+        LocalDate day = LocalDate.parse(date, Formatters.DATE);
+        LocalDate today = LocalDate.now();
+        if (day.equals(today)) return mListener.getContext().getString(R.string.epg_today);
+        if (day.equals(today.plusDays(1))) return mListener.getContext().getString(R.string.epg_tomorrow);
+        return day.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.getDefault());
+    }
+
+    private String getDateLabel(String date) {
         return date.length() == 10 ? date.substring(5) : date;
     }
 
@@ -100,6 +121,8 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
         void onDatePick(Epg item);
 
         void onEdgeLeft();
+
+        void setUITimer();
 
         RecyclerView getRecycler();
 
