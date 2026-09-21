@@ -123,6 +123,17 @@ public class Epg {
         return items;
     }
 
+    /** 按墙钟时间取节目：优先命中正好覆盖该时间的条目，退而取该时间之前最近的一条。
+        直播时移要「跳到对应时间的节目」，就是靠这个把回退量换算成节目。 */
+    public EpgData findByTime(long time) {
+        EpgData before = null;
+        for (EpgData item : getList()) {
+            if (item.getStartTime() <= time && time <= item.getEndTime()) return item;
+            if (item.getEndTime() <= time && (before == null || item.getEndTime() > before.getEndTime())) before = item;
+        }
+        return before;
+    }
+
     public Epg selected() {
         for (EpgData item : getList()) item.setSelected(item.isInRange());
         return this;

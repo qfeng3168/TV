@@ -94,6 +94,17 @@ public class LivePlaybackController {
         return requestShift(data, C.TIME_UNSET);
     }
 
+    /** 时移跳转（直播态左右键专用）：这条是「时移」线路，跟 EPG 点击的「回看」是两条线。
+        回看走 catchup-source、一条节目一个固定起止；时移走 shift-source，要在流内落到精确位置，
+        所以这里必须把 position 一路带到播放器，不能退化成「从头播」。 */
+    public boolean shiftTo(EpgData data, long positionMs) {
+        Channel channel = state.getChannel();
+        if (channel == null || data == null) return false;
+        if (!channel.hasShift()) return false;
+        host.renderEpgSelection(data);
+        return requestShift(data, positionMs);
+    }
+
     public void onPlaybackResult(PlaybackResult<LivePlayRequest> playback) {
         if (playback == null || cannotApply(playback)) return;
         applyPlaybackResult(playback.result(), playback.request());

@@ -65,6 +65,7 @@ import com.fongmi.android.tv.ui.dialog.PlayerEngineDialog;
 import com.fongmi.android.tv.ui.dialog.SpeedSettingDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
+import com.fongmi.android.tv.utils.Formatters;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -73,6 +74,7 @@ import com.fongmi.android.tv.utils.Traffic;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -979,6 +981,24 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         seekTo(time);
     }
 
+    /** 是否具备时移能力。时移走 shift-source 线路，和 EPG 点击的「回看」（catchup-source）是两条线，
+        这里只判时移，别把回看能力混进来。 */
+    private boolean canShift() {
+        return mChannel != null && mChannel.hasShift() && Setting.isEpgCatchup();
+    }
+
+    /** 直播态按左进入时移：offset 是相对「现在」的位移（负 = 往回）。
+        直播流端点只能给出「现在」，所以把落点换算成墙钟时间去找对应节目，
+        再走时移线路定位到流内位置（position 从该节目起点算起）。 */
+    private void shiftTo(long offset) {
+        mKeyDown.reset();
+        if (!canShift()) return;
+        long target = System.currentTimeMillis() + offset;
+        EpgData data = mChannel.getData(mViewModel.getZoneId()).findByTime(target);
+        if (data == null) return;
+        mLive.shiftTo(data, Math.max(0, target - data.getStartTime()));
+    }
+
     private void onPaused() {
         controller().pause();
     }
@@ -1023,10 +1043,20 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onSeeking(long time) {
-        if (player().isLive()) return;
-        mBinding.widget.center.setVisibility(View.VISIBLE);
-        mBinding.widget.duration.setText(player().getDurationTime());
-        mBinding.widget.position.setText(player().getPositionTime(time));
+        if (player().isLive()) {
+            // 直播态按左右键 = 准备进入时移。只有「频道支持时移」且「往回看」才给反馈，
+            // 否则左键还是原来的上一条线路。直播流没有可 seek 的时间轴，position/duration
+            // 在直播态取不到值，这里按墙钟把落点显示出来。
+            if (!canShift() || time >= 0) return;
+            long now = System.currentTimeMillis();
+            mBinding.widget.center.setVisibility(View.VISIBLE);
+            mBinding.widget.position.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now + time)));
+            mBinding.widget.duration.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(now)));
+        } else {
+            mBinding.widget.center.setVisibility(View.VISIBLE);
+            mBinding.widget.duration.setText(player().getDurationTime());
+            mBinding.widget.position.setText(player().getPositionTime(time));
+        }
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         hideProgress();
     }
@@ -1045,8 +1075,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onKeyLeft(long time) {
-        if (player().isLive()) prevLine();
-        else App.post(() -> seek(time), 250);
+        if (player().isLive()) {
+            // 直播态按左 = 进入时移（shift-source 线路）。没有时移能力的频道维持原来的「上一条线路」。
+            if (canShift() && time < 0) shiftTo(time);
+            else prevLine();
+        } else App.post(() -> seek(time), 250);
     }
 
     @Override
