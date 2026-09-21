@@ -1128,7 +1128,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         // 的 seek() 里收，时移这条链根本走不到，于是前进/后退图标会一直挂在画面上（用户实测）。
         hideCenter();
         if (!canShift() || mChannel == null) {
-            Log.i("KSHIFT", "shiftTo abort canShift=" + canShift() + " channel=" + (mChannel == null ? "null" : mChannel.getTitle()));
+            Log.i("KSHIFT", "shiftTo abort canShift=" + canShift() + " channel=" + (mChannel == null ? "null" : mChannel.getName()));
             return;
         }
         long now = System.currentTimeMillis();
@@ -1250,7 +1250,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         // 分支（该源流内 seek 实测无效 = 按了没反应，装机两次复现）。
         Log.i("KSHIFT", "onKeyLeft time=" + time + " isLiveReq=" + mLive.isLiveRequest()
                 + " canShift=" + canShift() + " anchor=" + mShiftAnchor
-                + " ch=" + (mChannel == null ? "null" : mChannel.getTitle()));
+                + " ch=" + (mChannel == null ? "null" : mChannel.getName()));
         if (mLive.isLiveRequest()) {
             // 直播态按左 = 进入时移（shift-source 线路）。没有时移能力的频道维持原来的「上一条线路」。
             if (canShift() && time < 0) shiftTo(time);
