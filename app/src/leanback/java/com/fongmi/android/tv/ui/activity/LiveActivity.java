@@ -300,10 +300,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private Group setWidth(Group group) {
-        int logo = ResUtil.dp2px(60);
         int padding = ResUtil.dp2px(64);
         if (group.isKeep()) group.setWidth(0);
-        if (group.getWidth() == 0) for (Channel item : group.getChannel()) group.setWidth(Math.max(group.getWidth(), (item.getLogo().isEmpty() ? 0 : logo) + ResUtil.getTextWidth(item.getNumber() + item.getName(), 16)));
+        if (group.getWidth() == 0) for (Channel item : group.getChannel()) group.setWidth(Math.max(group.getWidth(), ResUtil.getTextWidth(item.getNumber() + item.getName(), 16)));
         int width = group.getWidth() == 0 ? 0 : Math.min(group.getWidth() + padding, ResUtil.getScreenWidth() / 2);
         setWidth(mBinding.channel, width);
         return group;
@@ -529,17 +528,18 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     public void showEpg(Channel item) {
         if (mChannel == null || mChannel.getData(mViewModel.getZoneId()).getList().isEmpty() || mEpgDataAdapter.getItemCount() == 0 || !mChannel.equals(item) || !mChannel.getGroup().equals(mGroup)) return;
         mBinding.epgData.setSelectedPosition(mChannel.getData(mViewModel.getZoneId()).getSelected());
+        // 仿电视家：右键呼出节目单时隐藏分组列、保留频道列，节目单贴在频道单右侧
         mBinding.epgData.setVisibility(View.VISIBLE);
-        mBinding.channel.setVisibility(View.GONE);
         mBinding.group.setVisibility(View.GONE);
+        mBinding.epgHint.setVisibility(View.GONE);
         mBinding.epgData.requestFocus();
     }
 
     @Override
     public void hideEpg() {
-        mBinding.channel.setVisibility(View.VISIBLE);
         mBinding.group.setVisibility(View.VISIBLE);
         mBinding.epgData.setVisibility(View.GONE);
+        mBinding.epgHint.setVisibility(View.VISIBLE);
         mBinding.channel.requestFocus();
     }
 
