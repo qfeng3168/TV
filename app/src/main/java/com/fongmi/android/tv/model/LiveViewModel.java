@@ -99,6 +99,7 @@ public class LiveViewModel extends ViewModel implements LiveDataSource {
     }
 
     private Result getUrlResult(LivePlayRequest request) throws Exception {
+        android.util.Log.i("KSHIFT", "vm.getUrl shift=" + request.isShift() + " catchup=" + request.isCatchup() + " ch=" + request.getChannel().getName());
         if (request.isCatchup()) return LiveApi.getUrl(request.getChannel(), request.getCatchupData(), request.isShift());
         return LiveApi.getUrl(request.getChannel());
     }

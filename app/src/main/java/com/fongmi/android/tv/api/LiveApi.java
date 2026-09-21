@@ -74,6 +74,7 @@ public class LiveApi {
         Result result = getUrl(item);
         result.setUrl(useShift ? item.getCatchup().formatShift(result.getRealUrl(), data) : item.getCatchup().format(result.getRealUrl(), data));
         if (item.isRtsp()) result.getHeader().put("rtsp_range", data.getRange());
+        android.util.Log.i("KSHIFT", "liveApi useShift=" + useShift + " rtsp=" + item.isRtsp() + " range=" + (item.isRtsp() ? data.getRange() : "-") + " url=" + result.getUrl());
         return result;
     }
 

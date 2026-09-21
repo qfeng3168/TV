@@ -992,11 +992,19 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         再走时移线路定位到流内位置（position 从该节目起点算起）。 */
     private void shiftTo(long offset) {
         mKeyDown.reset();
-        if (!canShift()) return;
+        if (!canShift()) {
+            android.util.Log.i("KSHIFT", "shiftTo abort canShift=false ch=" + mChannel);
+            return;
+        }
         long target = System.currentTimeMillis() + offset;
         EpgData data = mChannel.getData(mViewModel.getZoneId()).findByTime(target);
-        if (data == null) return;
-        mLive.shiftTo(data, Math.max(0, target - data.getStartTime()));
+        if (data == null) {
+            android.util.Log.i("KSHIFT", "shiftTo abort no-epg target=" + target + " list=" + mChannel.getData(mViewModel.getZoneId()).getList().size());
+            return;
+        }
+        long pos = Math.max(0, target - data.getStartTime());
+        android.util.Log.i("KSHIFT", "shiftTo ch=" + mChannel.getName() + " offset=" + offset + " target=" + target + " data=" + data.getTitle() + " [" + data.getStartTime() + "," + data.getEndTime() + "] pos=" + pos + " shiftSrc=" + mChannel.getCatchup().getShiftSource());
+        mLive.shiftTo(data, pos);
     }
 
     private void onPaused() {

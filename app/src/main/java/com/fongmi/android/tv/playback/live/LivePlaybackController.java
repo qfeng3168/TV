@@ -99,6 +99,7 @@ public class LivePlaybackController {
         所以这里必须把 position 一路带到播放器，不能退化成「从头播」。 */
     public boolean shiftTo(EpgData data, long positionMs) {
         Channel channel = state.getChannel();
+        android.util.Log.i("KSHIFT", "ctrl.shiftTo ch=" + (channel == null ? "null" : channel.getName() + " hasShift=" + channel.hasShift()) + " data=" + (data == null ? "null" : data.getTitle()) + " pos=" + positionMs);
         if (channel == null || data == null) return false;
         if (!channel.hasShift()) return false;
         host.renderEpgSelection(data);
@@ -118,6 +119,7 @@ public class LivePlaybackController {
 
     private void startResolvedPlayback(Result result, LivePlayRequest request, String realUrl) {
         long position = result.hasPosition() ? result.getPosition() : request.getPosition();
+        android.util.Log.i("KSHIFT", "startPlayback url=" + realUrl + " position=" + position + " shift=" + request.isShift());
         state.setPlayingRequest(request, realUrl);
         host.startPlayback(result, position, publishPlaybackMetadata(getEpgData(request)));
     }
@@ -320,6 +322,8 @@ public class LivePlaybackController {
     private boolean cannotApply(PlaybackResult<LivePlayRequest> playback) {
         LivePlayRequest pending = state.getPendingRequest();
         LivePlayRequest request = playback.request();
-        return pending == null || !pending.matches(request) || !request.matches(state.getChannel());
+        boolean reject = pending == null || !pending.matches(request) || !request.matches(state.getChannel());
+        if (reject) android.util.Log.i("KSHIFT", "cannotApply reject pendingNull=" + (pending == null) + " pendingMatch=" + (pending != null && pending.matches(request)) + " chMatch=" + request.matches(state.getChannel()) + " shift=" + request.isShift());
+        return reject;
     }
 }
