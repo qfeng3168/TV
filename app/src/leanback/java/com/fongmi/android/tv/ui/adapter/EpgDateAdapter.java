@@ -70,14 +70,10 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
         holder.binding.getRoot().setSelected(item.getDate().equals(mSelected));
         holder.binding.getRoot().setOnClickListener(v -> {
             mListener.onDatePick(item);
-            // notifyDataSetChanged 重建 ViewHolder 后焦点会掉，拉回到当前选中的 chip 上
+            // notifyDataSetChanged 重建 ViewHolder 后焦点会掉，拉回到被点的 chip 上。
+            // notify 触发的重布局是异步的，单层 post 可能落在过渡期拿到错位 holder（实测焦点偏一格），嵌套一层等布局落定
             RecyclerView recycler = mListener.getRecycler();
-            recycler.post(() -> {
-                int pos = holder.getBindingAdapterPosition();
-                if (pos < 0) pos = mItems.indexOf(item);
-                RecyclerView.ViewHolder h = recycler.findViewHolderForAdapterPosition(pos);
-                if (h != null) h.itemView.requestFocus();
-            });
+            recycler.post(() -> recycler.post(() -> focus(recycler, item)));
         });
         holder.binding.getRoot().setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
@@ -91,6 +87,12 @@ public class EpgDateAdapter extends RecyclerView.Adapter<EpgDateAdapter.ViewHold
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && position == mItems.size() - 1) return wrap(0);
             return false;
         });
+    }
+
+    /** 把焦点放到指定日期的 chip 上；拿不到（尚未布局）就不动，交给系统焦点恢复。 */
+    private void focus(RecyclerView recycler, Epg item) {
+        RecyclerView.ViewHolder h = recycler.findViewHolderForAdapterPosition(mItems.indexOf(item));
+        if (h != null) h.itemView.requestFocus();
     }
 
     /** 首尾环绕：滚到另一端并把焦点放过去。 */
