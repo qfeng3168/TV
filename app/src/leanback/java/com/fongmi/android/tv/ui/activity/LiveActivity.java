@@ -804,6 +804,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mViewModel.getEpg(mChannel);
         mCurrentEpg = null;
         mBinding.widget.play.setText("");
+        mBinding.widget.state.setVisibility(View.GONE);
         mBinding.widget.shift.setVisibility(View.GONE);
         mBinding.widget.epg.setVisibility(View.GONE);
         mBinding.widget.name.setMaxEms(48);
@@ -922,6 +923,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     @Override
     public void resetPlaybackForError(String msg) {
         PlaybackReset.afterError(player());
+        mBinding.widget.state.setVisibility(View.GONE);
         showError(msg);
     }
 
@@ -963,6 +965,14 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (service() != null && isOwner()) player().setMetadata(metadata);
         mBinding.widget.title.setText(metadata.displayTitle);
         mBinding.widget.title.setSelected(true);
+    }
+
+    @Override
+    public void renderPlaybackState(@Nullable LivePlayRequest request) {
+        // 状态徽章：时移/回放播放真正落地才显示；直播请求（含退时移回直播）= 隐藏
+        boolean show = request != null && request.isCatchup();
+        mBinding.widget.state.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) mBinding.widget.state.setText(request.isShift() ? R.string.live_shift : R.string.epg_catchup);
     }
 
     @Override
@@ -1120,6 +1130,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         if (!canShift() || mChannel == null) return;
         long now = System.currentTimeMillis();
         long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
+        // 右键追平直播点 = 关闭时移，直接回直播（用户约定：关闭时移后返回直播）
+        if (mShiftAnchor > 0 && base + offset >= now - 2000) {
+            Log.i("KSHIFT", "shiftTo catch-up live, exit shift");
+            mShiftAnchor = 0;
+            mLive.backToLive();
+            return;
+        }
         long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
         if (target <= 0) return;
         Epg epg = mChannel.getData(mViewModel.getZoneId());
@@ -1184,7 +1201,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         Log.i("KSHIFT", "onSeeking time=" + time + " isLive=" + player().isLive()
                 + " pos=" + player().getPosition() + " dur=" + player().getDuration()
                 + " anchor=" + mShiftAnchor + " canShift=" + canShift());
-        if (player().isLive() && mShiftAnchor <= 0) {
+        if (mLive.isLiveRequest() && mShiftAnchor <= 0) {
             // 纯直播态按左右键 = 准备进入时移。只有「频道支持时移」且「往回看」才给反馈，
             // 否则左键还是原来的上一条线路。直播流没有可 seek 的时间轴，position/duration
             // 在直播态取不到值，这里按墙钟把落点显示出来。
@@ -1218,7 +1235,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onKeyLeft(long time) {
-        if (player().isLive()) {
+        // 路由按「当前播放请求」而不是 player.isLive()：HMS 直播流起播约 5 秒后被 ExoPlayer
+        // 翻成非直播（a=range:clock=0-），isLive 会把直播态误判成回放态，左键落进流内 seek
+        // 分支（该源流内 seek 实测无效 = 按了没反应，装机两次复现）。
+        if (mLive.isLiveRequest()) {
             // 直播态按左 = 进入时移（shift-source 线路）。没有时移能力的频道维持原来的「上一条线路」。
             if (canShift() && time < 0) shiftTo(time);
             else prevLine();
@@ -1230,7 +1250,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onKeyRight(long time) {
-        if (player().isLive()) nextLine(true);
+        if (mLive.isLiveRequest()) nextLine(true);
         else if (mShiftAnchor > 0) shiftTo(time);
         else App.post(() -> seek(time), 250);
     }

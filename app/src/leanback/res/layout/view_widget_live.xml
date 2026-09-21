@@ -188,8 +188,22 @@
             android:layout_marginEnd="12dp"
             android:layout_weight="1"
             android:singleLine="true"
-            
+
             tools:text="正在播放：食神" />
+
+        <!-- 播放状态徽章：时移/回放态才显示（renderPlaybackState），对标酷9 信息卡 chip 位 -->
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/state"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/shape_live_state"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:singleLine="true"
+            android:textColor="@color/surface_base"
+            android:visibility="gone"
+            tools:text="回放" />
 
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.BodyLarge" android:id="@+id/line"
             android:layout_width="wrap_content"

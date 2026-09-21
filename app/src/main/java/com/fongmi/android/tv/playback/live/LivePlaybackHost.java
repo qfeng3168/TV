@@ -53,4 +53,8 @@ public interface LivePlaybackHost {
     void showCatchupReady(EpgData data);
 
     void showProgress();
+
+    /** 播放请求真正落地后回调（startResolvedPlayback）：null 或直播请求 = 隐藏状态徽章；
+        catchup+shift = 「时移」，catchup = 「回放」。 */
+    void renderPlaybackState(@Nullable LivePlayRequest request);
 }

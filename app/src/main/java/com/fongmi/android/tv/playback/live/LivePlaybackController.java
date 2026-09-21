@@ -113,6 +113,20 @@ public class LivePlaybackController {
         return requestShift(data, positionMs, anchorMs);
     }
 
+    /** 直播态判断按「当前播放请求」而不是 player.isLive()：HMS 直播流起播约 5 秒后被
+        ExoPlayer 翻成非直播（a=range:clock=0- 语义），isLive() 会把直播态误判成回放态，
+        左键就落进流内 seek 分支（该源流内 seek 实测无效 = 按了没反应）。shift 请求的
+        data 也非 null，isCatchup() 对 shift 同样成立，一个判断同时覆盖回看与时移。 */
+    public boolean isLiveRequest() {
+        LivePlayRequest request = state.getActiveRequest();
+        return request == null || !request.isCatchup();
+    }
+
+    /** 退出时移回直播（右键追平直播点用）。 */
+    public void backToLive() {
+        requestLive();
+    }
+
     public void onPlaybackResult(PlaybackResult<LivePlayRequest> playback) {
         if (playback == null || cannotApply(playback)) return;
         applyPlaybackResult(playback.result(), playback.request());
@@ -129,6 +143,7 @@ public class LivePlaybackController {
         Log.i("KSHIFT", "startResolved shift=" + request.isShift() + " anchor=" + request.getShiftAnchor()
                 + " pos=" + position + " url=" + realUrl);
         state.setPlayingRequest(request, realUrl);
+        host.renderPlaybackState(request);
         host.startPlayback(result, position, publishPlaybackMetadata(getEpgData(request)));
     }
 

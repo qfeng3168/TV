@@ -728,6 +728,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     @Override
     public void resetPlaybackForError(String msg) {
         PlaybackReset.afterError(player());
+        mBinding.widget.state.setVisibility(View.GONE);
         showError(msg);
     }
 
@@ -767,6 +768,13 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
         if (service() != null && isOwner()) player().setMetadata(metadata);
         mBinding.control.title.setText(metadata.displayTitle);
         mBinding.control.title.setSelected(true);
+    }
+
+    @Override
+    public void renderPlaybackState(@Nullable LivePlayRequest request) {
+        boolean show = request != null && request.isCatchup();
+        mBinding.widget.state.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) mBinding.widget.state.setText(request.isShift() ? R.string.live_shift : R.string.epg_catchup);
     }
 
     @Override

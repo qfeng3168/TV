@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放状态徽章底（时移/回放）：品牌绿药丸，深字保证对比度（白字对 #00BE06 对比不足） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="999dp" />
+    <solid android:color="@color/brand_primary" />
+</shape>
