@@ -3,33 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/selector_live"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:gravity="center"
+    android:gravity="center_vertical"
     android:orientation="horizontal">
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/number"
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:duplicateParentState="true"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/shape_live_number"
+        android:duplicateParentState="false"
         android:fontFeatureSettings="tnum"
-        android:textColor="@color/text"
-        tools:text="01" />
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/logo"
-        android:layout_width="48dp"
-        android:layout_height="36dp"
-        android:layout_marginEnd="12dp"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:minWidth="26dp"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        android:singleLine="true"
+        android:textColor="@color/on_surface_high"
+        tools:text="25" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/selector_live"
         android:duplicateParentState="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="8dp">
 
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/name"
             android:layout_width="wrap_content"
@@ -37,8 +38,8 @@
             android:duplicateParentState="true"
             android:ellipsize="marquee"
             android:singleLine="true"
-            android:textColor="@color/text"
-            tools:text="CNN" />
+            android:textColor="@color/selector_live_text"
+            tools:text="河北三农" />
 
         <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.CardSub" android:id="@+id/playing"
             android:layout_width="wrap_content"
@@ -46,10 +47,30 @@
             android:duplicateParentState="true"
             android:ellipsize="end"
             android:singleLine="true"
-            android:textColor="@color/on_surface_medium"
+            android:textColor="@color/selector_live_text_sub"
             android:visibility="gone"
-            tools:text="新闻联播"
+            tools:text="农博士在行动"
             tools:visibility="visible" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="6dp"
+            android:background="@color/nav_divider"
+            android:duplicateParentState="false"
+            android:weightSum="1"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <View
+                android:id="@+id/progressBar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                android:background="@color/white" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

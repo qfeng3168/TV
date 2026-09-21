@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.databinding.AdapterEpgDataBinding;
 import com.fongmi.android.tv.setting.Setting;
@@ -59,6 +60,8 @@ public class EpgDataAdapter extends RecyclerView.Adapter<EpgDataAdapter.ViewHold
         EpgData item = mItems.get(position);
         holder.binding.time.setText(item.getTime());
         holder.binding.title.setText(item.getTitle());
+        // 仿电视家：未来的节目标「预约」，已开播/已结束的标「回放」，提示用户可以点进去
+        holder.binding.tag.setText(item.isFuture() ? R.string.epg_reserve : R.string.epg_catchup);
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setLeftListener(mListener::hideEpg);
         holder.binding.getRoot().setOnClickListener(v -> {

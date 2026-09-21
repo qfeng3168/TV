@@ -310,7 +310,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setWidth(Epg epg) {
-        int padding = ResUtil.dp2px(52);
+        int padding = ResUtil.dp2px(84);
         if (epg.getList().isEmpty()) return;
         int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 14);
         if (epg.getWidth() == 0) for (EpgData item : epg.getList()) epg.setWidth(Math.max(epg.getWidth(), ResUtil.getTextWidth(item.getTitle(), 16)));

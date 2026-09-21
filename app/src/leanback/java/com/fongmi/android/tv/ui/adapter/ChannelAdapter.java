@@ -81,20 +81,27 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Channel item = mItems.get(position);
         String playing = item.getPlaying(zoneId);
-        item.loadLogo(holder.binding.logo);
         holder.binding.name.setText(item.getShow());
         holder.binding.number.setText(item.getNumber());
         holder.binding.playing.setText(playing);
         holder.binding.playing.setVisibility(playing.isEmpty() ? View.GONE : View.VISIBLE);
+        bindProgress(holder, item.getData(zoneId).getCurrent());
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
         holder.binding.getRoot().setOnLongClickListener(v -> mListener.onLongClick(item));
     }
 
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
-        Glide.with(holder.binding.logo).clear(holder.binding.logo);
+    /** 仿电视家：正在播的节目下方画一条白色进度线，已播比例实时计算；没有进行中的节目就不显示。 */
+    private void bindProgress(ViewHolder holder, @Nullable EpgData current) {
+        boolean live = current != null && current.isInRange();
+        holder.binding.progress.setVisibility(live ? View.VISIBLE : View.GONE);
+        if (!live) return;
+        long span = current.getEndTime() - current.getStartTime();
+        float fraction = span <= 0 ? 0 : (System.currentTimeMillis() - current.getStartTime()) / (float) span;
+        fraction = Math.max(0f, Math.min(1f, fraction));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, fraction);
+        holder.binding.progressBar.setLayoutParams(params);
     }
 
     public interface OnClickListener {

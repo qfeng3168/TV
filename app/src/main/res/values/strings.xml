@@ -9,6 +9,9 @@
     <string name="live_line">Line <xliff:g name="name">%s</xliff:g></string>
     <string name="live_shift">Shift</string>
     <string name="live_epg">Guide</string>
+    <string name="live_epg_hint">Swipe right for guide</string>
+    <string name="epg_catchup">Replay</string>
+    <string name="epg_reserve">Remind</string>
 
     <!-- Detail -->
     <string name="detail_title"><xliff:g name="name">%s</xliff:g> : <xliff:g name="name">%s</xliff:g></string>

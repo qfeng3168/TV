@@ -6,24 +6,45 @@
     android:background="@drawable/selector_live"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:orientation="vertical">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="10dp">
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/title"
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        android:textColor="@color/text"
-        tools:text="七龍珠" />
+        android:orientation="vertical">
 
-    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/time"
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textColor="@color/selector_live_text_sub"
+            tools:text="12:35 ~ 12:45" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Body" android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:duplicateParentState="true"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textColor="@color/selector_live_text"
+            tools:text="农博士在行动" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/tag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
         android:singleLine="true"
-        android:textColor="@color/text"
-        tools:text="18:00 ~ 19:00" />
+        android:textColor="@color/selector_live_text_sub"
+        tools:text="回放" />
 
 </com.fongmi.android.tv.ui.custom.CustomLeftRightLayout>

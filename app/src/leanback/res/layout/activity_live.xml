@@ -48,6 +48,9 @@
         android:id="@+id/recycler"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/shape_live_list"
         android:orientation="horizontal"
         android:visibility="gone"
@@ -81,8 +84,23 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:padding="12dp"
+            android:visibility="gone"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_epg_data" />
+
+        <com.google.android.material.textview.MaterialTextView style="@style/Kiwi.Text.Caption" android:id="@+id/epgHint"
+            android:layout_width="18dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="12dp"
+            android:gravity="center_horizontal"
+            android:lineSpacingExtra="6dp"
+            android:text="@string/live_epg_hint"
+            android:textColor="@color/on_surface_medium"
+            android:visibility="gone"
+            tools:text="向右查看节目单"
+            tools:visibility="visible" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>
