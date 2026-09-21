@@ -1105,12 +1105,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     /** 时移位移：offset 是相对「当前看到的时刻」的位移（负 = 往回）。
-        直播态首次向前（左键）不搞相对位移，直接落 EPG 当前节目的开始时间 —— 直播的开始
-        时间以节目单当前节目为基准（用户约定）；之后在时移流里再按左右键才是相对位移。
-        这条源（HMS）的模板参数必须是 playseek：{b} 就是流的起点、npt 恒从 0 开始，把落点
-        直接写进 URL 重建流即可精准落点；该源的 RTSP 流内 seek 实测无效（OSD 位置数字会变、
-        画面不动），因此位移一律走重建流，不用 seek。starttime 参数服务端不实现
-        （2026-09-22 DESCRIBE 实证：starttime 任何形式都返回 s=live，playseek 才返回 s=vod）。 */
+        直播态：当前播放位置就是当前墙钟时间，基准 base = now；时移态：base = 流起点 + 流内已播
+        位置。向前时移的左边界 = 直播的开始时间 = EPG 当前节目的开始时间 —— 最多退到本节目开头，
+        不跨到上一节目（用户约定）。
+        模板参数必须是 playseek：{b} 就是流的起点、npt 恒从 0 开始，把落点直接写进 URL 重建流
+        即可精准落点；该源的 RTSP 流内 seek 实测无效（OSD 位置数字会变、画面不动），因此位移
+        一律走重建流，不用 seek。starttime 参数服务端不实现（2026-09-22 DESCRIBE 实证：
+        starttime 任何形式都返回 s=live，playseek 才返回 s=vod）。 */
     private void shiftTo(long offset) {
         mKeyDown.reset();
         // 松手即收起落点 OSD。放在最前面是为了「无论跳转成不成功都收」——原先只在成功分支外
@@ -1118,25 +1119,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         hideCenter();
         if (!canShift() || mChannel == null) return;
         long now = System.currentTimeMillis();
-        long target;
-        if (mShiftAnchor > 0) {
-            // 时移态：基准 = 当前画面那一刻的墙钟（流起点 + 流内已播位置），
-            // 不能再依赖 isLive()：这条源的时移流被服务端标记成 live，但画面并不是实时。
-            long base = mShiftAnchor + Math.max(0, player().getPosition());
-            target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
-        } else if (offset < 0) {
-            // 直播态首次向前：落点 = EPG 当前节目的开始时间
-            EpgData current = mCurrentEpg != null && !mCurrentEpg.getTitle().isEmpty()
-                    ? mCurrentEpg : mChannel.getData(mViewModel.getZoneId()).getCurrent();
-            if (current == null) return;
-            target = current.getStartTime();
-        } else {
-            target = Math.min(now + offset, now - 2000);
-        }
+        long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
+        long target = Math.min(base + offset, now - 2000);   // 不允许越过直播点
         if (target <= 0) return;
         Epg epg = mChannel.getData(mViewModel.getZoneId());
+        // 左边界：不早于当前节目的开始时间（直播的开始时间），越界收回到本节目开头
+        EpgData current = mCurrentEpg != null && !mCurrentEpg.getTitle().isEmpty()
+                ? mCurrentEpg : epg.getCurrent();
+        if (current == null) return;
+        if (target < current.getStartTime()) target = current.getStartTime();
         EpgData data = epg.findByTime(target);
-        Log.i("KSHIFT", "shiftTo offset=" + offset + " target=" + target
+        Log.i("KSHIFT", "shiftTo offset=" + offset + " base=" + base + " target=" + target
                 + " isLive=" + player().isLive() + " epgSize=" + epg.getList().size()
                 + " data=" + (data == null ? "null" : data.getTitle() + " " + data.getStartTime() + "~" + data.getEndTime()));
         if (data == null) return;
