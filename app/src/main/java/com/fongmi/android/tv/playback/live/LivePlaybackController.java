@@ -55,6 +55,18 @@ public class LivePlaybackController {
         return selectEpg(data, C.TIME_UNSET);
     }
 
+    /** 在「还没播放过」的频道上选节目：先把播放状态切到这个频道，再按节目起播。
+        正在播的那条 = 用户就是想看这个台，走直播；已播完的走回放/时移。
+        （原来这里只能靠 state 里正在播的频道，别的频道点节目单没反应。） */
+    public boolean selectEpg(Channel channel, EpgData data, long startPositionMs) {
+        if (channel == null || data == null) return false;
+        if (channel.equals(state.getChannel())) return selectEpg(data, startPositionMs);
+        boolean live = data.isInRange();
+        if (live) host.renderEpgSelection(data);
+        selectChannel(channel);
+        return live || selectEpg(data, C.TIME_UNSET);
+    }
+
     public boolean selectEpg(EpgData data, long startPositionMs) {
         Channel channel = state.getChannel();
         if (channel == null || data == null) return false;

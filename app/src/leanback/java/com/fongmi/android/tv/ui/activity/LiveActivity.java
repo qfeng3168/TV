@@ -98,6 +98,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private List<Group> mHides;
     private Group mGroup;
     private Channel mChannel;
+    private Channel mEpgChannel;
     private EpgData mCurrentEpg;
     private String mPlaybackKey;
     private int count;
@@ -524,19 +525,30 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.widget.size.setText(player().getSizeText());
     }
 
+    /** 仿电视家：频道行右键呼出节目单。节目单开在「当前焦点那一行」的频道上，不再要求它必须是正在播的
+        频道 —— 否则未播放过的频道右键毫无反应，也就无从回放/时移。节目单数据在批量解析时已绑到每个频道。 */
     @Override
     public void showEpg(Channel item) {
-        if (mChannel == null || mChannel.getData(mViewModel.getZoneId()).getList().isEmpty() || mEpgDataAdapter.getItemCount() == 0 || !mChannel.equals(item) || !mChannel.getGroup().equals(mGroup)) return;
-        mBinding.epgData.setSelectedPosition(mChannel.getData(mViewModel.getZoneId()).getSelected());
+        if (item == null) return;
+        Epg epg = item.getData(mViewModel.getZoneId());
+        List<EpgData> items = epg.filter();
+        if (items.isEmpty()) return;
+        EpgData current = epg.getCurrent();
+        mEpgChannel = item;
+        mEpgDataAdapter.addAll(items);
+        if (current != null) mEpgDataAdapter.setSelected(current);
+        mBinding.epgData.setSelectedPosition(current == null ? 0 : Math.max(items.indexOf(current), 0));
         // 仿电视家：右键呼出节目单时隐藏分组列、保留频道列，节目单贴在频道单右侧
         mBinding.epgData.setVisibility(View.VISIBLE);
         mBinding.group.setVisibility(View.GONE);
         mBinding.epgHint.setVisibility(View.GONE);
         mBinding.epgData.requestFocus();
+        setWidth(epg);
     }
 
     @Override
     public void hideEpg() {
+        mEpgChannel = null;
         mBinding.group.setVisibility(View.VISIBLE);
         mBinding.epgData.setVisibility(View.GONE);
         mBinding.epgHint.setVisibility(View.VISIBLE);
@@ -669,7 +681,12 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     public void onItemClick(EpgData item) {
-        mLive.selectEpg(item, player().getPosition());
+        Channel target = mEpgChannel == null ? mChannel : mEpgChannel;
+        if (target == null || mGroup == null) return;
+        // 节目单可能开在「还没播放过」的频道上：先把分组位置同步到频道列的焦点行，再交给控制器切台/回放
+        int position = mBinding.channel.getSelectedPosition();
+        if (position >= 0) mGroup.setPosition(position);
+        mLive.selectEpg(target.group(mGroup), item, player().getPosition());
     }
 
     private void addKeep(Channel item) {
@@ -708,13 +725,16 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         EpgData data = epg.getEpgData();
         mCurrentEpg = data;
         boolean hasTitle = !data.getTitle().isEmpty();
-        mEpgDataAdapter.addAll(epg.filter());
+        // 节目单列正开在别的频道上时，别被「正在播频道」的回调覆盖掉
+        if (mEpgChannel == null || mEpgChannel.equals(mChannel)) {
+            mEpgDataAdapter.addAll(epg.filter());
+            setWidth(epg);
+        }
         mBinding.widget.name.setMaxEms(hasTitle ? 12 : 48);
         mBinding.widget.play.setText(data.format());
         mBinding.widget.epg.setVisibility(epg.filter().isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.widget.shift.setVisibility(mChannel.hasShift() && Setting.isEpgCatchup() ? View.VISIBLE : View.GONE);
         mLive.onEpgChanged(data);
-        setWidth(epg);
     }
 
     private void onXmlParsed(boolean success) {
@@ -838,9 +858,15 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         Notify.show(getString(R.string.play_ready, data.getTitle()));
     }
 
+    /** 时移 = 回到当前节目的起点重看。起始位置必须给 0（时移流的第一帧就是节目起点），
+        原来传的是直播位置 —— 直播流里那个值约等于 0 或干脆是「现在」，两种都等于原地不动，
+        用户看到的就是「按了时移没反应」。 */
     private void onShift() {
-        if (mCurrentEpg == null || mChannel == null || !mChannel.hasShift() || !Setting.isEpgCatchup()) return;
-        mLive.selectShift(mCurrentEpg, player().getPosition());
+        if (mChannel == null || !mChannel.hasShift() || !Setting.isEpgCatchup()) return;
+        EpgData data = mCurrentEpg == null ? null : (mCurrentEpg.getTitle().isEmpty() ? null : mCurrentEpg);
+        if (data == null) data = mChannel.getData(mViewModel.getZoneId()).getCurrent();
+        if (data == null) return;
+        mLive.selectShift(data, 0);
     }
 
     private void onEpg() {
@@ -857,6 +883,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mHides.clear();
         mChannel = null;
         mGroup = null;
+        mEpgChannel = null;
     }
 
     @Override

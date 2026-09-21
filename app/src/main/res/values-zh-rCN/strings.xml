@@ -7,6 +7,8 @@
     <string name="live_pass">密码</string>
     <string name="live_refresh">刷新</string>
     <string name="live_line">线路 <xliff:g name="name">%s</xliff:g></string>
+    <string name="live_shift">时移</string>
+    <string name="live_epg">节目单</string>
     <string name="live_epg_hint">向右查看节目单</string>
     <string name="epg_catchup">回放</string>
     <string name="epg_reserve">预约</string>
