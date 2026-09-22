@@ -154,12 +154,27 @@ public class LivePlaybackController {
 
     public void playbackError(String msg) {
         host.resetPlaybackForError(msg);
-        fallbackAfterError();
+        LivePlayRequest request = state.getActiveRequest();
+        if (request != null && request.isCatchup()) {
+            // 时移/回放态出错 → 回直播（参照酷9：回放失败恢复播放）
+            Log.i("KSHIFT", "playbackError catchup → backToLive: " + msg);
+            backToLive();
+        } else {
+            fallbackAfterError();
+        }
     }
 
     public void playbackEnded() {
-        if (host.isPlayerLive()) playNextProgram();
-        else nextChannel();
+        LivePlayRequest request = state.getActiveRequest();
+        if (request != null && request.isCatchup()) {
+            // 时移/回放播完 → 回直播（参照酷9：当天回放已播放至最后，恢复播放）
+            Log.i("KSHIFT", "playbackEnded catchup → backToLive");
+            backToLive();
+        } else if (host.isPlayerLive()) {
+            playNextProgram();
+        } else {
+            nextChannel();
+        }
     }
 
     public void onEpgChanged(EpgData data) {
