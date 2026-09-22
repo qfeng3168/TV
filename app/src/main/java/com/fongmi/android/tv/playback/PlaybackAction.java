@@ -69,6 +69,13 @@ public final class PlaybackAction {
         setVisible(speed, hasSpeed(player));
     }
 
+    // 直播专用：倍速只在「时移/回放请求」下显示，直播请求（activeRequest 为 live）维持隐藏。
+    // 依据用户规范——倍速=回看语义，直播态倍速反常规。
+    public static void setTracks(PlayerManager player, View text, View audio, View video, View speed, boolean isLiveRequest) {
+        setTracks(player, text, audio, video);
+        setVisible(speed, !isLiveRequest && hasSpeed(player));
+    }
+
     public static void setMediaOptions(PlayerManager player, View edition, View chapter) {
         setVisible(edition, hasEdition(player));
         setVisible(chapter, hasChapter(player));
