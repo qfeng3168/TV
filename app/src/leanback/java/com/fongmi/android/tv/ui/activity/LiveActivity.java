@@ -114,6 +114,9 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private String mPlaybackKey;
     /** 当前时移流的起点墙钟毫秒（= 上一次时移落点）；0 表示不在时移态。左右键位移以此为准。 */
     private long mShiftAnchor;
+    /** 进入当前时移态的墙钟毫秒；0 = 不在时移态。用来加「宽限期」——刚进入时移（<2s）时按右键
+        只做位移、不退出回直播，避免「按左立刻按右就直接跳回直播」。 */
+    private long mShiftActiveAt;
     private int count;
 
     public static void start(Context context) {
@@ -945,6 +948,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mChannel = channel;
         // 换台即退出时移：锚点必须清掉，否则新频道上按左右键会拿着上一台的墙钟基准去算落点
         mShiftAnchor = 0;
+        mShiftActiveAt = 0;
+        mKeyDown.reset();
         setArtwork();
         showInfo();
     }
@@ -1010,6 +1015,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mGroup = null;
         mEpgChannel = null;
         mShiftAnchor = 0;
+        mShiftActiveAt = 0;
+        // holdTime 是全生命周期共享的：不清就会把上一次按键的残留累加值带进新频道，
+        // 让「time < 0 才时移」的判定失效（残留是正数时按左键落到 prevLine 切线路）。
+        mKeyDown.reset();
     }
 
     @Override
@@ -1133,10 +1142,16 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         }
         long now = System.currentTimeMillis();
         long base = mShiftAnchor > 0 ? mShiftAnchor + Math.max(0, player().getPosition()) : now;
-        // 右键追平直播点 = 关闭时移，直接回直播（用户约定：关闭时移后返回直播）
-        if (mShiftAnchor > 0 && base + offset >= now - 2000) {
-            Log.i("KSHIFT", "shiftTo catch-up live, exit shift");
+        // 右键追平直播点 = 关闭时移，直接回直播（用户约定：关闭时移后返回直播）。
+        // 加 2 秒宽限期：刚进入时移态就按右键时 base 还贴着 now（holdTime 每次 shiftTo 都清零），
+        // 若不设宽限，base + 10s 立刻 >= now - 2s 就跳回直播 —— 用户看到「时移后直接到直播」。
+        // 宽限期内右键按位移走，不退出；宽限期过后（= 流基本追上直播点）才允许退出。
+        boolean inShift = mShiftAnchor > 0 && mShiftActiveAt > 0;
+        if (inShift && base + offset >= now - 2000 && now - mShiftActiveAt > 2000) {
+            Log.i("KSHIFT", "shiftTo catch-up live, exit shift (grace expired "
+                    + (now - mShiftActiveAt) + "ms)");
             mShiftAnchor = 0;
+            mShiftActiveAt = 0;
             mLive.backToLive();
             return;
         }
@@ -1161,6 +1176,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
                 + " data=" + (data == null ? "null" : data.getTitle() + " " + data.getStartTime() + "~" + data.getEndTime()));
         if (data == null) return;
         mShiftAnchor = target;
+        // 记录「进入时移态」的时间点（只在第一次进入时写）—— 用于 shiftTo 里的宽限期判断
+        if (mShiftActiveAt == 0) mShiftActiveAt = now;
         mLive.shiftTo(data, 0, target);
     }
 
