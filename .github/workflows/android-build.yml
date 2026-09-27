@@ -597,8 +597,23 @@ jobs:
         include:
           - variant: mobileDebug
             flavor: mobile
+            buildtype: debug
           - variant: leanbackDebug
             flavor: leanback
+            buildtype: debug
+          # Release builds are the publishable artifacts. They are what
+          # AbiApkPackaging splits by ABI, so each of the two flavours yields
+          # one arm64-v8a and one armeabi-v7a APK - four packages in total:
+          #   leanback-arm64_v8a.apk   leanback-armeabi_v7a.apk
+          #   mobile-arm64_v8a.apk     mobile-armeabi_v7a.apk
+          # Debug stays in the matrix because the sideload build is the one the
+          # device is tested on; the release builds are not installed there.
+          - variant: leanbackRelease
+            flavor: leanback
+            buildtype: release
+          - variant: mobileRelease
+            flavor: mobile
+            buildtype: release
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -1367,11 +1382,42 @@ jobs:
       - name: Build ${{ matrix.variant }}
         run: ./gradlew :app:assemble${{ matrix.variant }} --no-daemon --stacktrace
 
+      # Report the packages this run produced, including which ABIs really made
+      # it into each one. Release builds are the only ABI-split ones, so the
+      # debug jobs list two single-ABI APKs and the release jobs list the same
+      # two names - which is exactly the four packages a release publishes.
+      - name: Report the built APKs
+        run: |
+          OUT="app/build/outputs/apk/${{ matrix.flavor }}/${{ matrix.buildtype }}"
+          python3 - "$OUT" <<'PY'
+          import hashlib
+          import pathlib
+          import sys
+          import zipfile
+
+          out = pathlib.Path(sys.argv[1])
+          if not out.is_dir():
+              print("::error::output directory missing: %s" % out)
+              sys.exit(1)
+          apks = sorted(out.glob("*.apk"))
+          if not apks:
+              print("::error::no APK produced in %s" % out)
+              sys.exit(1)
+          print("built %d APK(s) under %s" % (len(apks), out))
+          for apk in apks:
+              abis = []
+              with zipfile.ZipFile(apk) as archive:
+                  abis = sorted({n.split("/")[1] for n in archive.namelist() if n.startswith("lib/")})
+              digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+              print("  %-34s %9.1f MB  abis=%s" % (apk.name, apk.stat().st_size / 1e6, ",".join(abis)))
+              print("  sha256 %s" % digest)
+          PY
+
       - name: Upload APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: tv-${{ matrix.variant }}
-          path: app/build/outputs/apk/${{ matrix.flavor }}/debug/*.apk
-          if-no-files-found: warn
+          path: app/build/outputs/apk/${{ matrix.flavor }}/${{ matrix.buildtype }}/*.apk
+          if-no-files-found: error
           retention-days: 7
