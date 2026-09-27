@@ -18,6 +18,18 @@ on:
   pull_request:
     branches: [fongmi]
   workflow_dispatch:
+    inputs:
+      # When set, the two release jobs also attach their four ABI-split APKs
+      # to the GitHub Release named by RELEASE_TAG. Kept behind an explicit
+      # switch so an ordinary branch push never publishes.
+      publish:
+        description: Attach the built release APKs to the GitHub Release
+        type: boolean
+        default: false
+      release_tag:
+        description: Existing release tag to attach the APKs to
+        type: string
+        default: v5.6.3-kiwi.1
 
 permissions:
   contents: read
@@ -591,6 +603,8 @@ jobs:
     needs: media-aar
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -1419,5 +1433,35 @@ jobs:
         with:
           name: tv-${{ matrix.variant }}
           path: app/build/outputs/apk/${{ matrix.flavor }}/${{ matrix.buildtype }}/*.apk
+
+      # The runner reaches the Azure blob that backs the artifacts in
+      # milliseconds, whereas pulling the same files across the internet takes
+      # minutes at best. So when a dispatch asks for it, publish straight from
+      # here instead of round-tripping the APKs through a workstation.
+      - name: Publish the APKs to the GitHub Release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && matrix.buildtype == 'release' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          OUT="app/build/outputs/apk/${{ matrix.flavor }}/${{ matrix.buildtype }}"
+          shopt -s nullglob
+          apks=("$OUT"/*.apk)
+          if [ ${#apks[@]} -eq 0 ]; then
+            echo "::error::nothing to publish under $OUT"
+            exit 1
+          fi
+          for apk in "${apks[@]}"; do
+            name=$(basename "$apk")
+            size=$(stat -c%s "$apk")
+            if gh release view "$RELEASE_TAG" --json assets \
+                --jq '.assets[].name' | grep -Fxq "$name"; then
+              echo "already attached, skip: $name"
+              continue
+            fi
+            echo "::group::upload $name ($size bytes)"
+            gh release upload "$RELEASE_TAG" "$apk" --repo "$GITHUB_REPOSITORY"
+            echo "::endgroup::"
+          done
           if-no-files-found: error
           retention-days: 7
